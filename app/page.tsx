@@ -10,7 +10,7 @@ const stats = [
 const projects = [
   {
     title: 'Glider Build & Donate',
-    description: 'Members design, build, and donate handcrafted gliders to children in the community — combining aerospace engineering with meaningful service.',
+    description: 'Members design, build, and donate handcrafted gliders to children in the community, combining aerospace engineering with meaningful service.',
     status: 'Ongoing',
     partner: 'TBD',
   },
@@ -51,7 +51,7 @@ export default function Home() {
             <span className="text-gray-400">Building Impact.</span>
           </h1>
           <p className="text-lg text-gray-500 max-w-xl mx-auto mb-10 leading-relaxed">
-            We design, build, and donate — starting with gliders for kids and growing into
+            We design, build, and donate to children. Starting with gliders for kids and growing into
             a full community service program powered by aerospace and engineering.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
