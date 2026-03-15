@@ -1,22 +1,35 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
 
-const stats = [
-  { value: '1', label: 'Projects Launched' },
-  { value: '40+', label: 'Active Members' },
-  { value: '0', label: 'Nonprofits Partnered' },
-  { value: '0', label: 'Volunteer Hours Logged' },
-]
-
-const projects = [
+const projectsList = [
   {
     title: 'Glider Build & Donate',
-    description: 'Members design, build, and donate handcrafted gliders to children in the community, combining aerospace engineering with meaningful service.',
+    description: 'Members design, build, and donate handcrafted gliders to children in the community — combining aerospace engineering with meaningful service.',
     status: 'Ongoing',
     partner: 'TBD',
   },
 ]
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+
+  const [hoursRes, membersRes, projectsRes] = await Promise.all([
+    supabase.from('volunteer_hours').select('hours').eq('verified', true),
+    supabase.from('profiles').select('id'),
+    supabase.from('projects').select('id'),
+  ])
+
+  const totalVerifiedHours = (hoursRes.data ?? []).reduce((sum, h) => sum + Number(h.hours), 0)
+  const totalMembers = membersRes.data?.length ?? 0
+  const totalProjects = projectsRes.data?.length ?? 0
+
+  const stats = [
+    { value: totalProjects.toString(), label: 'Projects Launched' },
+    { value: '40+', label: 'Active Members' },
+    { value: '0', label: 'Nonprofits Partnered' },
+    { value: totalVerifiedHours.toFixed(1), label: 'Volunteer Hours Logged' },
+  ]
+
   return (
     <main className="min-h-screen bg-white text-gray-900">
 
@@ -29,10 +42,7 @@ export default function Home() {
             <Link href="/curriculum" className="hover:text-gray-900 transition-colors">Curriculum</Link>
             <Link href="/contact" className="hover:text-gray-900 transition-colors">Contact</Link>
           </div>
-          <Link
-            href="/login"
-            className="text-sm bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors"
-          >
+          <Link href="/login" className="text-sm bg-gray-900 text-white px-4 py-2 rounded-full hover:bg-gray-700 transition-colors">
             Member Portal
           </Link>
         </div>
@@ -55,16 +65,10 @@ export default function Home() {
             a full community service program powered by aerospace and engineering.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              href="/projects"
-              className="bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors"
-            >
+            <Link href="/projects" className="bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors">
               View Our Projects
             </Link>
-            <Link
-              href="/contact"
-              className="text-gray-600 px-6 py-3 rounded-full text-sm font-medium border border-gray-200 hover:border-gray-400 transition-colors"
-            >
+            <Link href="/contact" className="text-gray-600 px-6 py-3 rounded-full text-sm font-medium border border-gray-200 hover:border-gray-400 transition-colors">
               Partner With Us
             </Link>
           </div>
@@ -96,16 +100,11 @@ export default function Home() {
             </Link>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <div
-                key={project.title}
-                className="border border-gray-100 rounded-2xl p-6 hover:border-gray-300 transition-colors"
-              >
+            {projectsList.map((project) => (
+              <div key={project.title} className="border border-gray-100 rounded-2xl p-6 hover:border-gray-300 transition-colors">
                 <div className="flex items-center justify-between mb-4">
                   <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                    project.status === 'Ongoing'
-                      ? 'bg-green-50 text-green-700'
-                      : 'bg-gray-100 text-gray-500'
+                    project.status === 'Ongoing' ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
                   }`}>
                     {project.status}
                   </span>
@@ -128,10 +127,7 @@ export default function Home() {
             engineering thinking with meaningful service to those who need it most."
           </blockquote>
           <div className="mt-10">
-            <Link
-              href="/curriculum"
-              className="inline-block border border-gray-600 text-gray-300 px-6 py-3 rounded-full text-sm hover:border-gray-400 hover:text-white transition-colors"
-            >
+            <Link href="/curriculum" className="inline-block border border-gray-600 text-gray-300 px-6 py-3 rounded-full text-sm hover:border-gray-400 hover:text-white transition-colors">
               See What We Teach →
             </Link>
           </div>
@@ -143,13 +139,10 @@ export default function Home() {
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl font-semibold tracking-tight mb-4">Ready to make an impact?</h2>
           <p className="text-gray-500 mb-8">
-            Whether you're a nonprofit looking for partners or a student ready to lead,
-            we'd love to connect.
+            Whether you are a nonprofit looking for partners or a student ready to lead,
+            we would love to connect.
           </p>
-          <Link
-            href="/contact"
-            className="inline-block bg-gray-900 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
+          <Link href="/contact" className="inline-block bg-gray-900 text-white px-8 py-3.5 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors">
             Get in Touch
           </Link>
         </div>
@@ -158,7 +151,7 @@ export default function Home() {
       {/* FOOTER */}
       <footer className="border-t border-gray-100 py-10 px-6">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <span>© 2025 Wakeland High School AEC. All rights reserved.</span>
+          <span>2025 Wakeland High School AEC. All rights reserved.</span>
           <div className="flex gap-6">
             <Link href="/projects" className="hover:text-gray-600 transition-colors">Projects</Link>
             <Link href="/curriculum" className="hover:text-gray-600 transition-colors">Curriculum</Link>
@@ -171,5 +164,6 @@ export default function Home() {
     </main>
   )
 }
+
 
 
