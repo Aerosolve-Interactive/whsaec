@@ -1,11 +1,15 @@
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 
 export default async function AdminPage() {
   const supabase = await createClient()
 
   const [membersRes, hoursRes, projectsRes] = await Promise.all([
     supabase.from('profiles').select('*'),
-    supabase.from('volunteer_hours').select('*, profiles(full_name)').order('created_at', { ascending: false }),
+    supabase
+      .from('volunteer_hours')
+      .select('*, profiles!volunteer_hours_member_id_fkey(full_name)')
+      .order('created_at', { ascending: false }),
     supabase.from('projects').select('*'),
   ])
 
@@ -40,7 +44,7 @@ export default async function AdminPage() {
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-semibold">Pending Hours</h2>
-          <a href="/admin/hours" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">View all</a>
+          <Link href="/admin/hours" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">View all</Link>
         </div>
         {pendingHours.length === 0 ? (
           <p className="text-sm text-gray-400 text-center py-8">No pending hours.</p>
@@ -49,7 +53,7 @@ export default async function AdminPage() {
             {pendingHours.slice(0, 8).map((entry) => (
               <div key={entry.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
                 <div>
-                  <p className="text-sm font-medium">{(entry.profiles as any)?.full_name}</p>
+                  <p className="text-sm font-medium">{(entry as any).profiles?.full_name}</p>
                   <p className="text-xs text-gray-400">{entry.date} · {entry.description}</p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -65,7 +69,7 @@ export default async function AdminPage() {
       <div className="bg-white border border-gray-100 rounded-2xl p-6">
         <div className="flex items-center justify-between mb-5">
           <h2 className="font-semibold">Members</h2>
-          <a href="/admin/members" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">View all</a>
+          <Link href="/admin/members" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">View all</Link>
         </div>
         <div className="space-y-3">
           {members.slice(0, 8).map((member) => (
@@ -93,4 +97,6 @@ export default async function AdminPage() {
     </div>
   )
 }
+
+
 
