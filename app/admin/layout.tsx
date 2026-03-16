@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white border-b border-gray-100 px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          <Link href="/" className="font-semibold text-lg tracking-tight">WHS AeroSolve Interactive</Link>
+          <Link href="/" className="font-semibold text-lg tracking-tight">WHS Aeroserve</Link>
           <span className="text-xs bg-gray-900 text-white px-2.5 py-1 rounded-full">Admin</span>
         </div>
         <div className="flex items-center gap-6">

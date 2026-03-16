@@ -33,7 +33,7 @@ export default function PortalNav({ fullName, role }: Props) {
 
   return (
     <nav className="bg-white border-b border-gray-100 px-6 h-16 flex items-center justify-between">
-      <Link href="/" className="font-semibold text-lg tracking-tight">WHS AeroSolve Interactive</Link>
+      <Link href="/" className="font-semibold text-lg tracking-tight">WHS Aeroserve</Link>
 
       <div className="flex items-center gap-6">
         <Link href="/portal/dashboard" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">

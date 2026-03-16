@@ -19,7 +19,7 @@ export default function ProjectsPage() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="font-semibold text-lg tracking-tight">WHS AeroSolve Interactive</Link>
+          <Link href="/" className="font-semibold text-lg tracking-tight">WHS Aeroserve</Link>
           <div className="hidden md:flex items-center gap-8 text-sm text-gray-600">
             <Link href="/projects" className="text-gray-900 font-medium">Projects</Link>
             <Link href="/curriculum" className="hover:text-gray-900 transition-colors">Curriculum</Link>
