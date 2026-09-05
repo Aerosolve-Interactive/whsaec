@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { formatHours } from '@/lib/hours'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -40,10 +41,10 @@ export default async function DashboardPage() {
       {/* STATS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Total Hours', value: totalHours.toFixed(1) },
-          { label: 'Verified Hours', value: verifiedHours.toFixed(1) },
+          { label: 'Total Hours', value: formatHours(totalHours) },
+          { label: 'Verified Hours', value: formatHours(verifiedHours) },
           { label: 'Projects', value: contributions.length },
-          { label: 'Pending Hours', value: (totalHours - verifiedHours).toFixed(1) },
+          { label: 'Pending Hours', value: formatHours(totalHours - verifiedHours) },
         ].map((stat) => (
           <div key={stat.label} className="bg-white border border-gray-100 rounded-2xl p-5">
             <div className="text-2xl font-semibold tracking-tight mb-1">{stat.value}</div>

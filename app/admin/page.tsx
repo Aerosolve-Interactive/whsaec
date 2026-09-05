@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { formatHours } from '@/lib/hours'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -30,7 +31,7 @@ export default async function AdminPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Total Members', value: members.length },
-          { label: 'Total Hours Logged', value: totalHours.toFixed(1) },
+          { label: 'Total Hours Logged', value: formatHours(totalHours) },
           { label: 'Pending Verification', value: pendingHours.length },
           { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length },
         ].map((stat) => (

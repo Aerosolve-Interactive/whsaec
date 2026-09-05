@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { formatHours } from '@/lib/hours'
 
 const projectsList = [
   {
@@ -27,7 +28,7 @@ export default async function Home() {
     { value: totalProjects.toString(), label: 'Projects Launched' },
     { value: '40+', label: 'Active Members' },
     { value: '0', label: 'Nonprofits Partnered' },
-    { value: totalVerifiedHours.toFixed(1), label: 'Volunteer Hours Logged' },
+    { value: formatHours(totalVerifiedHours), label: 'Volunteer Hours Logged' },
   ]
 
   return (

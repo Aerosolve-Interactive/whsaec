@@ -45,3 +45,12 @@ export function formatElapsed(clockInIso: string, now: Date = new Date()): strin
 export function formatClockTime(iso: string): string {
   return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })
 }
+
+/**
+ * Formats a totals number so quarter-hour precision (.25/.5/.75) is never
+ * lost to rounding, while whole numbers still print cleanly (14, not
+ * 14.00). Use this anywhere a Total/Verified/Pending stat is displayed.
+ */
+export function formatHours(hours: number): string {
+  return (Math.round(hours * 100) / 100).toString()
+}
