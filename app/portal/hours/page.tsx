@@ -9,6 +9,7 @@ import {
   computeSessionHours,
   formatElapsed,
   formatClockTime,
+  formatHours,
 } from '@/lib/hours'
 
 interface HourEntry {
@@ -187,15 +188,15 @@ export default function HoursPage() {
 
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <div className="text-2xl font-semibold mb-1">{totalHours.toFixed(1)}</div>
+          <div className="text-2xl font-semibold mb-1">{formatHours(totalHours)}</div>
           <div className="text-xs text-gray-400">Total Hours</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <div className="text-2xl font-semibold mb-1">{verifiedHours.toFixed(1)}</div>
+          <div className="text-2xl font-semibold mb-1">{formatHours(verifiedHours)}</div>
           <div className="text-xs text-gray-400">Verified Hours</div>
         </div>
         <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <div className="text-2xl font-semibold mb-1">{(totalHours - verifiedHours).toFixed(1)}</div>
+          <div className="text-2xl font-semibold mb-1">{formatHours(totalHours - verifiedHours)}</div>
           <div className="text-xs text-gray-400">Pending Verification</div>
         </div>
       </div>
