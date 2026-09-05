@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { SESSION_LABELS, computeSessionHours, formatElapsed, formatClockTime } from '@/lib/hours'
 
 interface HourEntry {
   id: string
@@ -15,28 +16,58 @@ interface HourEntry {
   projects: { title: string } | null
 }
 
+interface ActiveSession {
+  id: string
+  member_id: string
+  project_id: string | null
+  session_type: string | null
+  clock_in_time: string
+  member_profile: { full_name: string } | null
+  projects: { title: string } | null
+}
+
 export default function AdminHoursClient() {
   const supabase = createClient()
   const [hours, setHours] = useState<HourEntry[]>([])
+  const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified'>('pending')
+  const [now, setNow] = useState(() => new Date())
+  const [closingId, setClosingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      const { data, error } = await supabase
-        .from('volunteer_hours')
-        .select(`
-          *,
-          member_profile:profiles!volunteer_hours_member_id_fkey(full_name),
-          projects(title)
-        `)
-        .order('date', { ascending: false })
-      console.log('data:', data, 'error:', error)
-      setHours(data ?? [])
+      const [hoursRes, sessionsRes] = await Promise.all([
+        supabase
+          .from('volunteer_hours')
+          .select(`
+            *,
+            member_profile:profiles!volunteer_hours_member_id_fkey(full_name),
+            projects(title)
+          `)
+          .order('date', { ascending: false }),
+        supabase
+          .from('active_clock_sessions')
+          .select(`
+            *,
+            member_profile:profiles!active_clock_sessions_member_id_fkey(full_name),
+            projects(title)
+          `)
+          .order('clock_in_time', { ascending: true }),
+      ])
+      setHours(hoursRes.data ?? [])
+      setActiveSessions(sessionsRes.data ?? [])
       setLoading(false)
     }
     load()
   }, [])
+
+  // Keep "elapsed" times fresh for whoever is currently clocked in.
+  useEffect(() => {
+    if (activeSessions.length === 0) return
+    const interval = setInterval(() => setNow(new Date()), 30000)
+    return () => clearInterval(interval)
+  }, [activeSessions.length])
 
   async function verifyHour(id: string) {
     const { data: { user } } = await supabase.auth.getUser()
@@ -61,6 +92,41 @@ export default function AdminHoursClient() {
     setHours(prev => prev.filter(h => h.id !== id))
   }
 
+  async function forceClockOut(session: ActiveSession) {
+    if (!confirm(`Clock out ${session.member_profile?.full_name ?? 'this member'} now? This submits their session for verification using the current time as the end time.`)) return
+    setClosingId(session.id)
+
+    const clockOutTime = new Date()
+    const hoursComputed = computeSessionHours(session.clock_in_time, clockOutTime)
+    const sessionLabel = session.session_type ? SESSION_LABELS[session.session_type] : null
+
+    const { error } = await supabase.from('volunteer_hours').insert({
+      member_id: session.member_id,
+      project_id: session.project_id,
+      date: session.clock_in_time.slice(0, 10),
+      hours: hoursComputed,
+      description: sessionLabel ? `${sessionLabel} - (clocked out by admin)` : '(clocked out by admin)',
+      notes: 'Member did not clock out; an admin closed this session manually.',
+      clock_in_time: session.clock_in_time,
+      clock_out_time: clockOutTime.toISOString(),
+    })
+
+    if (!error) {
+      await supabase.from('active_clock_sessions').delete().eq('id', session.id)
+      setActiveSessions(prev => prev.filter(s => s.id !== session.id))
+      const { data: refreshed } = await supabase
+        .from('volunteer_hours')
+        .select(`
+          *,
+          member_profile:profiles!volunteer_hours_member_id_fkey(full_name),
+          projects(title)
+        `)
+        .order('date', { ascending: false })
+      setHours(refreshed ?? [])
+    }
+    setClosingId(null)
+  }
+
   const filtered = hours.filter(h => {
     if (filter === 'pending') return !h.verified
     if (filter === 'verified') return h.verified
@@ -75,6 +141,39 @@ export default function AdminHoursClient() {
           {loading ? 'Loading...' : `${hours.length} total entries`}
         </p>
       </div>
+
+      {activeSessions.length > 0 && (
+        <div className="bg-white border border-gray-100 rounded-2xl p-6">
+          <h2 className="font-semibold mb-5">Currently Clocked In</h2>
+          <div className="space-y-3">
+            {activeSessions.map((session) => (
+              <div key={session.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
+                <div className="flex items-center gap-3">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+                  </span>
+                  <div>
+                    <p className="text-sm font-medium">{session.member_profile?.full_name ?? 'Unknown'}</p>
+                    <p className="text-xs text-gray-400">
+                      {session.session_type ? SESSION_LABELS[session.session_type] : session.projects?.title ?? 'Session'}
+                      {' · since '}{formatClockTime(session.clock_in_time)}
+                      {' · '}{formatElapsed(session.clock_in_time, now)} elapsed
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => forceClockOut(session)}
+                  disabled={closingId === session.id}
+                  className="text-xs bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+                >
+                  {closingId === session.id ? 'Clocking out...' : 'Clock Out Now'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex gap-2">
         {(['pending', 'verified', 'all'] as const).map((f) => (
@@ -140,4 +239,3 @@ export default function AdminHoursClient() {
     </div>
   )
 }
-
