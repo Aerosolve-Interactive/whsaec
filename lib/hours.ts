@@ -27,8 +27,8 @@ export function isSessionTypeValue(value: string): boolean {
 export function computeSessionHours(clockInIso: string, clockOut: Date): number {
   const ms = clockOut.getTime() - new Date(clockInIso).getTime()
   const rawHours = ms / (1000 * 60 * 60)
-  const rounded = Math.round(rawHours * 4) / 4
-  if (rawHours > 0 && rounded <= 0) return 0.25
+  const rounded = Math.round(rawHours * 100) / 100
+  if (rawHours > 0 && rounded <= 0) return 0.01
   return Math.max(rounded, 0)
 }
 
