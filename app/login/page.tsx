@@ -37,7 +37,10 @@ export default function LoginPage() {
     <main className="min-h-screen bg-white flex items-center justify-center px-6">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link href="/" className="font-semibold text-lg tracking-tight">WHS Aeroserve</Link>
+          <Link href="/" className="inline-flex items-center gap-2">
+            <img src="/logo.svg" alt="" className="h-7 w-7" />
+            <span className="font-semibold text-lg tracking-tight">WHS Aeroserve</span>
+          </Link>
           <p className="text-gray-400 text-sm mt-2">Member Portal</p>
         </div>
 
