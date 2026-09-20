@@ -127,3 +127,205 @@
     @apply font-sans;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Marketing site motion system
+   Used by the public homepage. Everything here degrades to a
+   static layout under prefers-reduced-motion (see bottom block).
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── Aurora: slow drifting colour fields behind the hero ────── */
+@keyframes aurora-a {
+  0%,
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(7%, -5%, 0) scale(1.15); }
+  66%  { transform: translate3d(-5%, 6%, 0) scale(0.92); }
+}
+@keyframes aurora-b {
+  0%,
+  100% { transform: translate3d(0, 0, 0) scale(1.05); }
+  40%  { transform: translate3d(-8%, 4%, 0) scale(0.9); }
+  70%  { transform: translate3d(5%, -6%, 0) scale(1.18); }
+}
+@keyframes aurora-c {
+  0%,
+  100% { transform: translate3d(0, 0, 0) scale(0.95); }
+  50%  { transform: translate3d(4%, 7%, 0) scale(1.2); }
+}
+
+.aurora {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+.aurora-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(80px);
+  will-change: transform;
+}
+.aurora-blob--a {
+  width: 44rem;
+  height: 44rem;
+  top: -16rem;
+  left: -10rem;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.24), transparent 68%);
+  animation: aurora-a 26s ease-in-out infinite;
+}
+.aurora-blob--b {
+  width: 38rem;
+  height: 38rem;
+  top: -8rem;
+  right: -12rem;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.2), transparent 68%);
+  animation: aurora-b 32s ease-in-out infinite;
+}
+.aurora-blob--c {
+  width: 34rem;
+  height: 34rem;
+  top: 14rem;
+  left: 38%;
+  background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%);
+  animation: aurora-c 38s ease-in-out infinite;
+}
+
+/* ── Fine grid texture, masked so it fades out downward ─────── */
+.grid-fade {
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 78%);
+}
+
+/* ── Scroll reveal (driven by IntersectionObserver) ─────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  transition:
+    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Hero headline: staggered word rise on load ─────────────── */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(0.5em); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* Note: deliberately sets no `display` — callers keep their own layout
+   (block headline spans, the flex CTA row, block paragraphs). */
+.rise {
+  opacity: 0;
+  animation: rise-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Gradient ink for the accent line of the headline ─────────
+   background-clip:text clips to the line box, so descenders (g, p)
+   get sheared off at tight line-heights. The padding extends the
+   clip box below the baseline; the matching negative margin keeps
+   the visual spacing unchanged. */
+.ink-gradient {
+  background: linear-gradient(100deg, #3b82f6 0%, #6366f1 42%, #22d3ee 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+}
+
+/* ── Floating glider ────────────────────────────────────────── */
+/* Gentle bob only — the glider's heading is set by its own rotate()
+   transform so it stays aligned with the flight path. */
+@keyframes float-drift {
+  0%,
+  100% { transform: translateY(0); }
+  50%  { transform: translateY(-12px); }
+}
+.float-drift {
+  animation: float-drift 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* ── Flight path: dash that draws itself, then loops ────────── */
+@keyframes dash-flow {
+  to { stroke-dashoffset: -400; }
+}
+.flight-path {
+  stroke-dasharray: 5 9;
+  animation: dash-flow 14s linear infinite;
+}
+
+/* ── Marquee ────────────────────────────────────────────────── */
+@keyframes marquee-slide {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.marquee-mask {
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+}
+.marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee-slide 38s linear infinite;
+}
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+/* ── Card hover lift ────────────────────────────────────────── */
+.lift {
+  transition:
+    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.35s ease;
+}
+.lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 44px -12px rgba(15, 23, 42, 0.14);
+}
+
+/* ── Live pulse dot ─────────────────────────────────────────── */
+@keyframes pulse-ring {
+  0%   { transform: scale(0.85); opacity: 0.7; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.pulse-ring::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: pulse-ring 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* ── Respect reduced-motion: keep the design, drop the motion ─ */
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .rise {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+  .aurora-blob,
+  .float-drift,
+  .flight-path,
+  .marquee-track,
+  .pulse-ring::before {
+    animation: none !important;
+  }
+  .lift:hover {
+    transform: none;
+  }
+}
