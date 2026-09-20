@@ -1,0 +1,59 @@
+-- Migration: members can no longer read the whole membership table
+-- Run once in Supabase: Dashboard -> SQL Editor -> New query -> paste -> Run.
+-- Safe to run more than once.
+--
+-- Context: "profiles_select_all" (qual = true) let anonymous visitors read
+-- every profile; that was dropped in supabase-migration-rls-security-fixes.sql.
+-- This goes one step further and removes blanket access for signed-in members
+-- too, so a member account -- which anyone can create -- cannot enumerate every
+-- other member's name and email.
+--
+-- Verified against the app before writing this: every broad profiles read lives
+-- in app/admin/* and is covered by is_staff(). The only member-facing reads are
+-- portal/layout.tsx and portal/dashboard/page.tsx, both filtered to
+-- .eq('id', user.id). Dropping this policy breaks nothing.
+
+drop policy if exists "Profiles are viewable by authenticated users" on public.profiles;
+
+-- Remaining SELECT coverage comes from "admins can view all profiles":
+--     using (id = auth.uid() or public.is_staff())
+--
+--   anonymous          -> nothing
+--   signed-in member   -> their own profile only
+--   admin / officer    -> everyone
+
+-- ---------------------------------------------------------------------------
+-- OPTIONAL, for when a "project team" view exists
+-- ---------------------------------------------------------------------------
+-- Nothing in the app currently displays teammate names, so this is not applied
+-- above. When you build that screen, run the two statements below to let a
+-- member see the profiles of people who share a project with them.
+--
+-- The helper is SECURITY DEFINER for the same reason is_staff() is: reading
+-- project_contributions from inside a policy would otherwise be filtered by
+-- that table's own RLS and return nothing.
+--
+-- Note: RLS is row-level, not column-level -- this grants access to the whole
+-- profile row, email included. If teammates should only ever see names, expose
+-- a view selecting (id, full_name) instead and grant on that.
+--
+-- create or replace function public.shares_project_with(target uuid)
+-- returns boolean
+-- language sql
+-- security definer
+-- set search_path = public
+-- stable
+-- as $$
+--   select exists (
+--     select 1
+--     from public.project_contributions mine
+--     join public.project_contributions theirs
+--       on theirs.project_id = mine.project_id
+--     where mine.member_id = auth.uid()
+--       and theirs.member_id = target
+--   );
+-- $$;
+--
+-- create policy "members can view project collaborators"
+--   on public.profiles for select
+--   using (public.shares_project_with(id));
