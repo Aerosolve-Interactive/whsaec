@@ -32,10 +32,19 @@ export default function SignupPage() {
   }
 
   async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
+    setError('')
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/portal/dashboard` }
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/portal/dashboard`,
+      },
     })
+    // On success the browser navigates to Google, so this only runs on failure.
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    }
   }
 
   return (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -12,6 +12,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  // Surface anything /auth/callback bounced back here, then clean the URL so a
+  // refresh doesn't keep showing a stale error. Read from window rather than
+  // useSearchParams so this page can stay statically rendered without a
+  // Suspense boundary.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const callbackError = params.get('error')
+    if (callbackError) {
+      setError(callbackError)
+      window.history.replaceState({}, '', '/login')
+    }
+  }, [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -27,10 +40,19 @@ export default function LoginPage() {
   }
 
   async function handleGoogle() {
-    await supabase.auth.signInWithOAuth({
+    setError('')
+    setLoading(true)
+    const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/portal/dashboard` }
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?next=/portal/dashboard`,
+      },
     })
+    // On success the browser navigates to Google, so this only runs on failure.
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    }
   }
 
   return (
