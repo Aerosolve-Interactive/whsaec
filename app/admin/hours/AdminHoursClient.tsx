@@ -21,6 +21,7 @@ interface HourEntry {
   notes: string
   verified: boolean
   member_id: string
+  verified_by: string | null
   entry_type: string | null
   clock_in_time: string | null
   clock_out_time: string | null
@@ -59,6 +60,7 @@ export default function AdminHoursClient() {
   const [filter, setFilter] = useState<'all' | 'pending' | 'verified' | 'granted'>('pending')
   const [now, setNow] = useState(() => new Date())
   const [closingId, setClosingId] = useState<string | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
 
   // --- Grant Hours form state -------------------------------------------
   const [grantOpen, setGrantOpen] = useState(false)
@@ -74,6 +76,9 @@ export default function AdminHoursClient() {
 
   useEffect(() => {
     async function load() {
+      const { data: { user } } = await supabase.auth.getUser()
+      setCurrentUserId(user?.id ?? null)
+
       const [hoursRes, sessionsRes, membersRes] = await Promise.all([
         supabase.from('volunteer_hours').select(HOURS_SELECT).order('date', { ascending: false }),
         supabase
@@ -109,13 +114,31 @@ export default function AdminHoursClient() {
     setHours(data ?? [])
   }
 
-  async function verifyHour(id: string) {
+  /**
+   * Verifies someone else's entry. Verifying your own is refused here and by a
+   * database trigger -- hours created and approved by the same person are not
+   * something a college or advisor can rely on.
+   */
+  async function verifyHour(entry: HourEntry) {
     const { data: { user } } = await supabase.auth.getUser()
-    await supabase
+    if (!user) return
+    if (entry.member_id === user.id) {
+      alert('You cannot verify your own hours. Ask another admin or officer to verify this entry.')
+      return
+    }
+
+    const { error } = await supabase
       .from('volunteer_hours')
-      .update({ verified: true, verified_by: user?.id, verified_at: new Date().toISOString() })
-      .eq('id', id)
-    setHours(prev => prev.map(h => h.id === id ? { ...h, verified: true } : h))
+      .update({ verified: true, verified_by: user.id, verified_at: new Date().toISOString() })
+      .eq('id', entry.id)
+
+    if (error) {
+      alert(error.message)
+      return
+    }
+    setHours(prev => prev.map(h => h.id === entry.id
+      ? { ...h, verified: true, verified_by: user.id }
+      : h))
   }
 
   async function unverifyHour(id: string) {
@@ -123,7 +146,9 @@ export default function AdminHoursClient() {
       .from('volunteer_hours')
       .update({ verified: false, verified_by: null, verified_at: null })
       .eq('id', id)
-    setHours(prev => prev.map(h => h.id === id ? { ...h, verified: false } : h))
+    setHours(prev => prev.map(h => h.id === id
+      ? { ...h, verified: false, verified_by: null }
+      : h))
   }
 
   async function deleteHour(id: string) {
@@ -183,15 +208,20 @@ export default function AdminHoursClient() {
     setGranting(true)
     const { data: { user } } = await supabase.auth.getUser()
 
+    // Granting to yourself lands as pending: another admin has to verify it.
+    // Auto-verifying here would mean hours created and approved by the same
+    // person, which is exactly what the clock-in system exists to prevent.
+    const isSelfGrant = user?.id === grantMemberId
+
     const { error } = await supabase.from('volunteer_hours').insert({
       member_id: grantMemberId,
       date: grantDate,
       hours: amount,
       description: grantReason.trim(),
       notes: grantNotes.trim(),
-      verified: true,
-      verified_by: user?.id ?? null,
-      verified_at: new Date().toISOString(),
+      verified: !isSelfGrant,
+      verified_by: isSelfGrant ? null : (user?.id ?? null),
+      verified_at: isSelfGrant ? null : new Date().toISOString(),
       entry_type: 'admin_grant',
       granted_by: user?.id ?? null,
       clock_in_time: stamps.clockIn,
@@ -205,7 +235,11 @@ export default function AdminHoursClient() {
     }
 
     const memberName = members.find(m => m.id === grantMemberId)?.full_name ?? 'member'
-    setGrantSuccess(`Granted ${formatHours(amount)} hrs to ${memberName}.`)
+    setGrantSuccess(
+      isSelfGrant
+        ? `Granted ${formatHours(amount)} hrs to yourself. It is pending until another admin verifies it.`
+        : `Granted ${formatHours(amount)} hrs to ${memberName}.`
+    )
     setGrantMemberId('')
     setGrantHoursValue('')
     setGrantTime('')
@@ -215,6 +249,9 @@ export default function AdminHoursClient() {
     await refreshHours()
     setGranting(false)
   }
+
+  const memberName = (id: string | null) =>
+    id ? members.find(m => m.id === id)?.full_name ?? 'another admin' : null
 
   const filtered = hours.filter(h => {
     if (filter === 'pending') return !h.verified
@@ -420,6 +457,11 @@ export default function AdminHoursClient() {
                       : ''}
                     {entry.notes ? ' · ' + entry.notes : ''}
                   </p>
+                  {entry.verified && entry.verified_by && (
+                    <p className="text-xs text-green-600 mt-0.5">
+                      Verified by {memberName(entry.verified_by)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span className="text-sm font-medium">{formatHours(Number(entry.hours))} hrs</span>
@@ -430,9 +472,16 @@ export default function AdminHoursClient() {
                     >
                       Verified
                     </button>
+                  ) : entry.member_id === currentUserId ? (
+                    <span
+                      title="You cannot verify your own hours. Ask another admin or officer."
+                      className="text-xs bg-gray-100 text-gray-400 px-2.5 py-1 rounded-full cursor-default"
+                    >
+                      Needs another admin
+                    </span>
                   ) : (
                     <button
-                      onClick={() => verifyHour(entry.id)}
+                      onClick={() => verifyHour(entry)}
                       className="text-xs bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full hover:bg-green-50 hover:text-green-600 transition-colors"
                     >
                       Verify
