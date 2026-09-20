@@ -19,6 +19,7 @@ interface HourEntry {
   description: string
   notes: string
   verified: boolean
+  entry_type: string | null
   clock_in_time: string | null
   clock_out_time: string | null
   projects: { title: string } | null
@@ -300,8 +301,15 @@ export default function HoursPage() {
           <div className="space-y-3">
             {hours.map((entry) => (
               <div key={entry.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                <div>
-                  <p className="text-sm font-medium">{entry.description}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium flex items-center gap-2">
+                    <span className="truncate">{entry.description}</span>
+                    {entry.entry_type === 'admin_grant' && (
+                      <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium shrink-0">
+                        Granted
+                      </span>
+                    )}
+                  </p>
                   <p className="text-xs text-gray-400">
                     {entry.date} · {entry.projects?.title ?? 'General'}
                     {entry.clock_in_time && entry.clock_out_time

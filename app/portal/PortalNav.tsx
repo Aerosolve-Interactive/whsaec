@@ -35,7 +35,7 @@ export default function PortalNav({ fullName, role }: Props) {
     <nav className="bg-white border-b border-gray-100 px-6 h-16 flex items-center justify-between">
       <Link href="/" className="inline-flex items-center gap-2">
         <img src="/logo.svg" alt="" className="h-7 w-7" />
-        <span className="font-semibold text-lg tracking-tight">WHS Aeroserve</span>
+        <span className="font-semibold text-lg tracking-tight">AeroServe Youth Program</span>
       </Link>
 
       <div className="flex items-center gap-6">

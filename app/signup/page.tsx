@@ -44,7 +44,7 @@ export default function SignupPage() {
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2">
             <img src="/logo.svg" alt="" className="h-7 w-7" />
-            <span className="font-semibold text-lg tracking-tight">WHS Aeroserve</span>
+            <span className="font-semibold text-lg tracking-tight">AeroServe Youth Program</span>
           </Link>
           <p className="text-gray-400 text-sm mt-2">Member Portal</p>
         </div>

@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="flex items-center gap-6">
           <Link href="/" className="inline-flex items-center gap-2">
             <img src="/logo.svg" alt="" className="h-7 w-7" />
-            <span className="font-semibold text-lg tracking-tight">WHS Aeroserve</span>
+            <span className="font-semibold text-lg tracking-tight">AeroServe Youth Program</span>
           </Link>
           <span className="text-xs bg-gray-900 text-white px-2.5 py-1 rounded-full">Admin</span>
         </div>
