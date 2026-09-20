@@ -32,35 +32,47 @@ begin
   end if;
 end $$;
 
--- 2. Let admins/officers write an hours row on behalf of another member.
+-- 2. Staff check, as a SECURITY DEFINER function.
+--
+--    This MUST NOT be an inline "exists (select ... from profiles ...)" inside
+--    a policy on profiles: evaluating that subquery re-triggers the very policy
+--    being evaluated, and Postgres aborts with
+--    "42P17 infinite recursion detected in policy for relation profiles",
+--    which breaks every profile read in the app. SECURITY DEFINER reads the
+--    role with RLS bypassed, breaking the cycle.
+create or replace function public.is_staff()
+returns boolean
+language sql
+security definer
+set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles
+    where id = auth.uid()
+      and role in ('admin', 'officer')
+  );
+$$;
+
+revoke all on function public.is_staff() from public;
+grant execute on function public.is_staff() to authenticated;
+
+-- 3. Let admins/officers write an hours row on behalf of another member.
 --    This backs both the new "Grant Hours" form and the existing
 --    "Clock Out Now" button for members who forgot to clock out.
 drop policy if exists "admins can insert hours for members" on public.volunteer_hours;
 create policy "admins can insert hours for members"
   on public.volunteer_hours for insert
-  with check (
-    exists (
-      select 1 from public.profiles
-      where profiles.id = auth.uid()
-        and profiles.role in ('admin', 'officer')
-    )
-  );
+  with check (public.is_staff());
 
--- 3. Admins/officers need to read every member's profile to populate the
+-- 4. Admins/officers need to read every member's profile to populate the
 --    member picker on the Grant Hours form.
 drop policy if exists "admins can view all profiles" on public.profiles;
 create policy "admins can view all profiles"
   on public.profiles for select
-  using (
-    id = auth.uid()
-    or exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid()
-        and p.role in ('admin', 'officer')
-    )
-  );
+  using (id = auth.uid() or public.is_staff());
 
--- 4. Index the audit columns so "show me every admin-granted entry" stays fast
+-- 5. Index the audit columns so "show me every admin-granted entry" stays fast
 --    once the hours table grows.
 create index if not exists volunteer_hours_entry_type_idx
   on public.volunteer_hours (entry_type);
