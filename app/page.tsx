@@ -50,13 +50,31 @@ const pillars = [
 export default async function Home() {
   const supabase = await createClient()
 
-  const [hoursRes, projectsRes] = await Promise.all([
-    supabase.from('volunteer_hours').select('hours').eq('verified', true),
-    supabase.from('projects').select('id'),
-  ])
+  // Impact numbers come from a SECURITY DEFINER function rather than reading
+  // volunteer_hours directly. That table is not readable by anonymous visitors
+  // -- and shouldn't be, since its rows carry member ids and descriptions -- so
+  // a direct query rendered 0 for every logged-out visitor. The function
+  // returns only the aggregates.
+  let totalVerifiedHours = 0
+  let totalProjects = 0
 
-  const totalVerifiedHours = (hoursRes.data ?? []).reduce((sum, h) => sum + Number(h.hours), 0)
-  const totalProjects = projectsRes.data?.length ?? 0
+  const { data: impact, error: impactError } = await supabase
+    .rpc('public_impact_stats')
+    .single<{ verified_hours: number; project_count: number }>()
+
+  if (!impactError && impact) {
+    totalVerifiedHours = Number(impact.verified_hours) || 0
+    totalProjects = Number(impact.project_count) || 0
+  } else {
+    // Fallback until the migration is applied: projects are publicly readable,
+    // hours are not, so hours shows 0 rather than the page erroring.
+    const [hoursRes, projectsRes] = await Promise.all([
+      supabase.from('volunteer_hours').select('hours').eq('verified', true),
+      supabase.from('projects').select('id'),
+    ])
+    totalVerifiedHours = (hoursRes.data ?? []).reduce((sum, h) => sum + Number(h.hours), 0)
+    totalProjects = projectsRes.data?.length ?? 0
+  }
 
   const stats = [
     { value: totalProjects, suffix: '', decimals: 0, label: 'Projects Launched' },
