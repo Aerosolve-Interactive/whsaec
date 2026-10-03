@@ -1,5 +1,14 @@
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 import SiteNav from '@/components/site/SiteNav'
+import SiteFooter from '@/components/site/SiteFooter'
+import Reveal from '@/components/site/Reveal'
+
+export const metadata = {
+  title: 'Projects',
+  description:
+    'Engineering projects AeroServe members design, build, and donate to kids in the community.',
+}
 
 const projects = [
   {
@@ -7,123 +16,124 @@ const projects = [
     status: 'Ongoing',
     date: 'Spring 2025',
     partner: 'TBD',
-    description: 'Members design, build, and donate handcrafted gliders to children in the community — combining aerospace engineering with meaningful service.',
-    impact: 'Our first project as a club. Members learn basic aerodynamics, hands-on fabrication, and the value of giving back.',
+    description:
+      'Members design, build, and donate handcrafted gliders to children in the community, combining aerospace engineering with meaningful service.',
+    impact:
+      'Our first project as a club. Members learn basic aerodynamics, hands-on fabrication, and the value of giving back.',
     tags: ['Aerospace', 'Build', 'Donation'],
   },
 ]
 
 export default function ProjectsPage() {
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-
+    <>
       <SiteNav />
 
-      {/* HEADER */}
-      <section className="pt-32 pb-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 transition-colors mb-8 inline-block">
-            ← Back to Home
-          </Link>
-          <p className="text-sm text-gray-400 uppercase tracking-widest mb-3">Our Work</p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">Projects</h1>
-          <p className="text-gray-500 max-w-xl leading-relaxed">
-            Every project we take on combines engineering skills with real community impact. 
-            This is where ideas become action.
-          </p>
-        </div>
-      </section>
+      <main>
+        <section className="relative overflow-hidden border-b border-[var(--hairline)]">
+          <div className="rake-field pointer-events-none absolute inset-0" aria-hidden="true" />
+          <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-32 sm:px-8 lg:pb-20 lg:pt-36">
+            <h1 className="max-w-2xl text-[clamp(2.25rem,4.8vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-[var(--ink)]">
+              Every project ends with something in a kid&rsquo;s hands.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--ink-soft)]">
+              We take on work that combines real engineering with real community
+              impact. This is where ideas become action.
+            </p>
+          </div>
+        </section>
 
-      {/* PROJECTS LIST */}
-      <section className="pb-24 px-6">
-        <div className="max-w-4xl mx-auto space-y-6">
-          {projects.map((project) => (
-            <div
-              key={project.title}
-              className="border border-gray-100 rounded-2xl p-8 hover:border-gray-300 transition-colors"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      project.status === 'Ongoing'
-                        ? 'bg-green-50 text-green-700'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {project.status}
-                    </span>
-                    <span className="text-xs text-gray-400">{project.date}</span>
+        {/* Editorial entries. One project reads as a feature, not a lonely
+            card in a three-column grid padded out with empty cells. */}
+        <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-24">
+          <div className="flex flex-col gap-5">
+            {projects.map((project) => (
+              <Reveal key={project.title} as="article">
+                <div className="panel-hover rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--panel)] p-8 lg:p-12">
+                  <div className="grid gap-10 lg:grid-cols-[1.35fr_1fr]">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <span className="inline-flex items-center rounded-full bg-[var(--ok-wash)] px-3 py-1 text-xs font-medium text-[var(--ok)]">
+                          {project.status}
+                        </span>
+                        <span className="text-sm text-[var(--ink-muted)]">{project.date}</span>
+                      </div>
+
+                      <h2 className="mt-6 text-[clamp(1.6rem,3vw,2.1rem)] font-semibold leading-[1.15] tracking-[-0.03em] text-[var(--ink)]">
+                        {project.title}
+                      </h2>
+                      <p className="mt-5 max-w-prose leading-relaxed text-[var(--ink-soft)]">
+                        {project.description}
+                      </p>
+
+                      <ul className="mt-7 flex flex-wrap gap-2">
+                        {project.tags.map((tag) => (
+                          <li
+                            key={tag}
+                            className="rounded-full border border-[var(--hairline)] px-3 py-1 text-xs text-[var(--ink-muted)]"
+                          >
+                            {tag}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="flex flex-col gap-6 border-t border-[var(--hairline)] pt-8 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
+                      <div>
+                        <h3 className="text-sm font-medium text-[var(--ink)]">Why it matters</h3>
+                        <p className="mt-2.5 text-sm leading-relaxed text-[var(--ink-muted)]">
+                          {project.impact}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-[var(--ink)]">Partner</h3>
+                        <p className="mt-2.5 text-sm text-[var(--ink-muted)]">{project.partner}</p>
+                      </div>
+                    </div>
                   </div>
-                  <h2 className="text-xl font-semibold">{project.title}</h2>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs text-gray-400 mb-1">Partner</p>
-                  <p className="text-sm text-gray-600">{project.partner}</p>
-                </div>
-              </div>
+              </Reveal>
+            ))}
+          </div>
 
-              <p className="text-gray-500 leading-relaxed mb-4">{project.description}</p>
-
-              <div className="bg-gray-50 rounded-xl p-4 mb-6">
-                <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Impact</p>
-                <p className="text-sm text-gray-600 leading-relaxed">{project.impact}</p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {project.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="text-xs bg-gray-100 text-gray-500 px-3 py-1 rounded-full"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
+          <Reveal delay={80}>
+            <div className="mt-5 rounded-[var(--radius)] border border-dashed border-[var(--hairline-strong)] px-8 py-14 text-center">
+              <p className="font-medium text-[var(--ink)]">More projects coming soon</p>
+              <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-[var(--ink-muted)]">
+                New builds are added each season as members finish design and
+                testing. Check back as the program grows.
+              </p>
             </div>
-          ))}
-        </div>
+          </Reveal>
+        </section>
 
-        {/* EMPTY STATE for future projects */}
-        <div className="max-w-4xl mx-auto mt-6">
-          <div className="border border-dashed border-gray-200 rounded-2xl p-12 text-center">
-            <p className="text-gray-400 text-sm">More projects coming soon.</p>
-            <p className="text-gray-300 text-xs mt-1">Check back as the club grows.</p>
+        <section className="border-t border-[var(--hairline)] bg-[var(--panel)]">
+          <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-24">
+            <Reveal>
+              <div className="flex flex-col items-start justify-between gap-7 lg:flex-row lg:items-center">
+                <div>
+                  <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-semibold leading-[1.15] tracking-[-0.03em] text-[var(--ink)]">
+                    Want to partner on a project?
+                  </h2>
+                  <p className="mt-3 max-w-md leading-relaxed text-[var(--ink-soft)]">
+                    We are always looking for nonprofits and community
+                    organizations to build alongside.
+                  </p>
+                </div>
+                <Link
+                  href="/contact"
+                  className="tactile group inline-flex shrink-0 items-center gap-2 rounded-full bg-[var(--brand-navy)] px-6 py-3.5 text-sm font-medium text-white hover:bg-[#1e293b]"
+                >
+                  Partner with us
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Link>
+              </div>
+            </Reveal>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* CTA */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-semibold tracking-tight mb-3">Want to partner on a project?</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            We're always looking for nonprofits and community organizations to work with.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-block bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
-            Get in Touch
-          </Link>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="border-t border-gray-100 py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <span>© 2026 AeroServe Youth Program. All rights reserved.</span>
-          <div className="flex gap-6">
-            <Link href="/projects" className="hover:text-gray-600 transition-colors">Projects</Link>
-            <Link href="/curriculum" className="hover:text-gray-600 transition-colors">Curriculum</Link>
-            <Link href="/contact" className="hover:text-gray-600 transition-colors">Contact</Link>
-            <Link href="/login" className="hover:text-gray-600 transition-colors">Portal</Link>
-          </div>
-        </div>
-      </footer>
-
-    </main>
+      <SiteFooter />
+    </>
   )
 }
-
-
-

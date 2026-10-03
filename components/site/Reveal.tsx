@@ -1,41 +1,50 @@
 'use client'
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode, type ElementType } from 'react'
 
 interface RevealProps {
   children: ReactNode
-  /** Stagger delay in ms, for revealing siblings one after another. */
+  /** Stagger delay in ms for revealing siblings in sequence. */
   delay?: number
   className?: string
+  /** Defaults to a div; pass 'li' / 'section' to keep markup semantic. */
+  as?: ElementType
 }
 
 /**
- * Fades and lifts its children into place the first time they scroll into
- * view. The motion itself lives in `.reveal` / `.reveal.is-visible` in
- * globals.css, which already no-ops under prefers-reduced-motion.
+ * Reveals children the first time they enter the viewport.
+ *
+ * The transition lives in `.reveal` / `.reveal[data-shown]` in globals.css,
+ * which already no-ops under prefers-reduced-motion, so this component never
+ * needs to branch on motion preference itself. Observer disconnects after the
+ * first intersection: this is an entrance, not a scroll-linked effect.
  */
-export default function Reveal({ children, delay = 0, className = '' }: RevealProps) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(false)
+export default function Reveal({
+  children,
+  delay = 0,
+  className = '',
+  as: Tag = 'div',
+}: RevealProps) {
+  const ref = useRef<HTMLElement>(null)
+  const [shown, setShown] = useState(false)
 
   useEffect(() => {
     const el = ref.current
     if (!el) return
 
-    // If the browser can't observe, just show the content.
     if (typeof IntersectionObserver === 'undefined') {
-      setVisible(true)
+      setShown(true)
       return
     }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setVisible(true)
+          setShown(true)
           observer.disconnect()
         }
       },
-      { threshold: 0.15, rootMargin: '0px 0px -60px 0px' },
+      { threshold: 0.12, rootMargin: '0px 0px -48px 0px' },
     )
 
     observer.observe(el)
@@ -43,12 +52,13 @@ export default function Reveal({ children, delay = 0, className = '' }: RevealPr
   }, [])
 
   return (
-    <div
+    <Tag
       ref={ref}
-      className={`reveal ${visible ? 'is-visible' : ''} ${className}`.trim()}
+      data-shown={shown ? 'true' : 'false'}
+      className={`reveal ${className}`.trim()}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
     >
       {children}
-    </div>
+    </Tag>
   )
 }

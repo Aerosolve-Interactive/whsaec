@@ -4,6 +4,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ═══════════════════════════════════════════════════════════════════
+   AeroServe design tokens
+
+   The palette is derived from the one piece of real brand that already
+   existed: public/logo.svg -- a delta/wing mark in navy #0F172A and sky
+   #0EA5E9. Every page before this ignored it and used generic grays.
+
+   LOCKS (enforced site-wide):
+     Theme   light only. Tokens for dark exist so shadcn primitives keep
+             working, but no page inverts mid-scroll.
+     Accent  --accent-brand (#0EA5E9). One accent, every page, no
+             exceptions. No second accent is introduced anywhere.
+     Radius  panels 14px / controls 10px / buttons + pills full round.
+             That is the whole system; nothing uses another value.
+   ═══════════════════════════════════════════════════════════════════ */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -48,284 +64,291 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* ── Brand ─────────────────────────────────────────────── */
+  --brand-navy: #0f172a;
+  --brand-sky: #0ea5e9;
+  --brand-sky-deep: #0284c7;
+  --brand-sky-wash: #e8f6fe;
+
+  /* ── Surfaces. Off-white, never pure #fff for the page. ── */
+  --page: #fbfbfd;
+  --panel: #ffffff;
+  --panel-sunk: #f4f6f9;
+
+  /* ── Ink. Navy-tinted neutrals, one temperature family. ── */
+  --ink: #0f172a;
+  --ink-soft: #475569;
+  --ink-muted: #64748b;   /* 4.6:1 on --page, passes AA body */
+  --ink-faint: #94a3b8;   /* decorative + large text only */
+
+  --hairline: #e5e9f0;
+  --hairline-strong: #cbd5e1;
+
+  /* ── Status. Used only for real state, never decoration. ─ */
+  --ok: #047857;
+  --ok-wash: #ecfdf5;
+  --warn: #b45309;
+  --warn-wash: #fffbeb;
+  --danger: #be123c;
+  --danger-wash: #fff1f2;
+
+  --radius: 0.875rem;
+
+  /* ── shadcn primitive mapping ──────────────────────────── */
+  --background: var(--page);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: var(--brand-navy);
+  --primary-foreground: #ffffff;
+  --secondary: var(--panel-sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--panel-sunk);
+  --muted-foreground: var(--ink-muted);
+  --accent: var(--brand-sky-wash);
+  --accent-foreground: var(--brand-sky-deep);
+  --destructive: var(--danger);
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--brand-sky);
+  --chart-1: #0ea5e9;
+  --chart-2: #0284c7;
+  --chart-3: #0369a1;
+  --chart-4: #075985;
+  --chart-5: #0c4a6e;
+  --sidebar: var(--panel);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--brand-navy);
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: var(--panel-sunk);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--hairline);
+  --sidebar-ring: var(--brand-sky);
 }
 
+/* Present so shadcn primitives resolve if a `.dark` ancestor ever
+   appears. The site itself is light-locked; nothing toggles this. */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --page: #0b1220;
+  --panel: #121a2a;
+  --panel-sunk: #0e1626;
+  --ink: #f1f5f9;
+  --ink-soft: #cbd5e1;
+  --ink-muted: #94a3b8;
+  --ink-faint: #64748b;
+  --hairline: #1e293b;
+  --hairline-strong: #334155;
+  --background: var(--page);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: #f1f5f9;
+  --primary-foreground: #0b1220;
+  --secondary: var(--panel-sunk);
+  --secondary-foreground: var(--ink);
+  --muted: var(--panel-sunk);
+  --muted-foreground: var(--ink-muted);
+  --accent: #0c2435;
+  --accent-foreground: #7dd3fc;
+  --border: var(--hairline);
+  --input: var(--hairline-strong);
+  --ring: var(--brand-sky);
+  --sidebar: var(--panel);
+  --sidebar-foreground: var(--ink);
+  --sidebar-border: var(--hairline);
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
+    @apply border-border;
   }
   html {
     @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--page);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Visible, branded focus. The previous design had none on most
+     controls, which is a keyboard-nav regression worth not repeating. */
+  :focus-visible {
+    outline: 2px solid var(--brand-sky);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--brand-sky);
+    color: #fff;
+  }
+
+  /* Small data (table cells, row counts, timestamps) is monospaced so
+     columns stop shifting width as values change. */
+  .nums {
+    font-family: var(--font-geist-mono), ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
+  }
+
+  /* Large display figures stay in the sans face. Monospace gives the
+     decimal point a full character cell, so "25.4" reads as "25 . 4"
+     at headline size. Sans + tabular keeps digits aligned without the
+     gap. */
+  .stat-figure {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.045em;
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   Marketing site motion system
-   Used by the public homepage. Everything here degrades to a
-   static layout under prefers-reduced-motion (see bottom block).
-   ══════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   Brand geometry
 
-/* ── Aurora: slow drifting colour fields behind the hero ────── */
-@keyframes aurora-a {
-  0%,
-  100% { transform: translate3d(0, 0, 0) scale(1); }
-  33%  { transform: translate3d(7%, -5%, 0) scale(1.15); }
-  66%  { transform: translate3d(-5%, 6%, 0) scale(0.92); }
-}
-@keyframes aurora-b {
-  0%,
-  100% { transform: translate3d(0, 0, 0) scale(1.05); }
-  40%  { transform: translate3d(-8%, 4%, 0) scale(0.9); }
-  70%  { transform: translate3d(5%, -6%, 0) scale(1.18); }
-}
-@keyframes aurora-c {
-  0%,
-  100% { transform: translate3d(0, 0, 0) scale(0.95); }
-  50%  { transform: translate3d(4%, 7%, 0) scale(1.2); }
+   The logo is two angled planes meeting at an apex, raked -6deg. That
+   rake is the site's one repeating visual device: it sets the angle of
+   the hero field and the section dividers. It is derived from the real
+   mark rather than invented, which is why it is allowed to repeat.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Faint ruled field, raked to the logo angle. Sits behind the hero. */
+.rake-field {
+  background-image: repeating-linear-gradient(
+    96deg,
+    color-mix(in oklab, var(--brand-sky) 13%, transparent) 0 1px,
+    transparent 1px 15px
+  );
+  mask-image: radial-gradient(118% 85% at 82% 8%, #000 8%, transparent 68%);
+  -webkit-mask-image: radial-gradient(118% 85% at 82% 8%, #000 8%, transparent 68%);
 }
 
-.aurora {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
-}
-.aurora-blob {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(80px);
-  will-change: transform;
-}
-.aurora-blob--a {
-  width: 44rem;
-  height: 44rem;
-  top: -16rem;
-  left: -10rem;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.24), transparent 68%);
-  animation: aurora-a 26s ease-in-out infinite;
-}
-.aurora-blob--b {
-  width: 38rem;
-  height: 38rem;
-  top: -8rem;
-  right: -12rem;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.2), transparent 68%);
-  animation: aurora-b 32s ease-in-out infinite;
-}
-.aurora-blob--c {
-  width: 34rem;
-  height: 34rem;
-  top: 14rem;
-  left: 38%;
-  background: radial-gradient(circle, rgba(34, 211, 238, 0.16), transparent 70%);
-  animation: aurora-c 38s ease-in-out infinite;
+/* Single soft brand bloom. One per page, hero only. */
+.brand-bloom {
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--brand-sky) 24%, transparent),
+    transparent
+  );
+  filter: blur(46px);
 }
 
-/* ── Fine grid texture, masked so it fades out downward ─────── */
-.grid-fade {
-  background-image:
-    linear-gradient(rgba(15, 23, 42, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(15, 23, 42, 0.045) 1px, transparent 1px);
-  background-size: 64px 64px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 78%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 20%, transparent 78%);
+/* Progressive indent for the stepped sequence. Desktop only: the stagger
+   is a compositional device, and on a phone it would just eat the column
+   the body copy needs. */
+@media (min-width: 1024px) {
+  .step-indent {
+    padding-left: var(--step-indent, 0);
+  }
 }
 
-/* ── Scroll reveal (driven by IntersectionObserver) ─────────── */
+/* Hairline that carries the rake angle, used between major sections. */
+.rake-rule {
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--hairline-strong) 18%,
+    var(--hairline-strong) 82%,
+    transparent
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Motion
+   Every rule here is gated on prefers-reduced-motion at the bottom.
+   ═══════════════════════════════════════════════════════════════════ */
+
 .reveal {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(14px);
   transition:
-    opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.62s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.62s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.reveal.is-visible {
+.reveal[data-shown="true"] {
   opacity: 1;
   transform: none;
 }
 
-/* ── Hero headline: staggered word rise on load ─────────────── */
-@keyframes rise-in {
-  from { opacity: 0; transform: translateY(0.5em); }
-  to   { opacity: 1; transform: translateY(0); }
+/* Press feedback. Applied to every interactive control site-wide so
+   clicking anything feels physical rather than instant. */
+.tactile {
+  transition:
+    transform 0.16s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.18s ease,
+    border-color 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease;
 }
-/* Note: deliberately sets no `display` — callers keep their own layout
-   (block headline spans, the flex CTA row, block paragraphs). */
-.rise {
-  opacity: 0;
-  animation: rise-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-/* ── Gradient ink for the accent line of the headline ─────────
-   background-clip:text clips to the line box, so descenders (g, p)
-   get sheared off at tight line-heights. The padding extends the
-   clip box below the baseline; the matching negative margin keeps
-   the visual spacing unchanged. */
-.ink-gradient {
-  background: linear-gradient(100deg, #3b82f6 0%, #6366f1 42%, #22d3ee 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  padding-bottom: 0.14em;
-  margin-bottom: -0.14em;
+.tactile:active {
+  transform: translateY(1px) scale(0.985);
 }
 
-/* ── Floating glider ────────────────────────────────────────── */
-/* Gentle bob only — the glider's heading is set by its own rotate()
-   transform so it stays aligned with the flight path. */
-@keyframes float-drift {
-  0%,
-  100% { transform: translateY(0); }
-  50%  { transform: translateY(-12px); }
+/* Panel hover. Lift is small on purpose; big lifts read as templated. */
+.panel-hover {
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
-.float-drift {
-  animation: float-drift 7s ease-in-out infinite;
-  will-change: transform;
-}
-
-/* ── Flight path: dash that draws itself, then loops ────────── */
-@keyframes dash-flow {
-  to { stroke-dashoffset: -400; }
-}
-.flight-path {
-  stroke-dasharray: 5 9;
-  animation: dash-flow 14s linear infinite;
+.panel-hover:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--brand-sky) 36%, var(--hairline));
+  box-shadow: 0 14px 34px -18px color-mix(in oklab, var(--brand-navy) 42%, transparent);
 }
 
-/* ── Marquee ────────────────────────────────────────────────── */
 @keyframes marquee-slide {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }
 }
 .marquee-mask {
-  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
-  -webkit-mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 9%, #000 91%, transparent);
 }
 .marquee-track {
   display: flex;
   width: max-content;
-  animation: marquee-slide 38s linear infinite;
+  animation: marquee-slide 46s linear infinite;
 }
 .marquee-track:hover {
   animation-play-state: paused;
 }
 
-/* ── Card hover lift ────────────────────────────────────────── */
-.lift {
-  transition:
-    transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.35s ease;
+/* Skeleton for loading states, shaped like the content it replaces. */
+@keyframes sheen {
+  to { background-position: 180% 0; }
 }
-.lift:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 44px -12px rgba(15, 23, 42, 0.14);
-}
-
-/* ── Live pulse dot ─────────────────────────────────────────── */
-@keyframes pulse-ring {
-  0%   { transform: scale(0.85); opacity: 0.7; }
-  70%  { transform: scale(2.2); opacity: 0; }
-  100% { transform: scale(2.2); opacity: 0; }
-}
-.pulse-ring::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 9999px;
-  background: currentColor;
-  animation: pulse-ring 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--panel-sunk) 0%,
+    color-mix(in oklab, var(--brand-sky) 7%, var(--panel-sunk)) 48%,
+    var(--panel-sunk) 100%
+  );
+  background-size: 220% 100%;
+  animation: sheen 1.5s ease-in-out infinite;
+  border-radius: 8px;
 }
 
-/* ── Respect reduced-motion: keep the design, drop the motion ─ */
 @media (prefers-reduced-motion: reduce) {
   .reveal {
     opacity: 1 !important;
     transform: none !important;
     transition: none !important;
   }
-  .rise {
-    opacity: 1 !important;
-    animation: none !important;
-  }
-  .aurora-blob,
-  .float-drift,
-  .flight-path,
   .marquee-track,
-  .pulse-ring::before {
+  .skeleton {
     animation: none !important;
   }
-  .lift:hover {
-    transform: none;
+  .panel-hover:hover,
+  .tactile:active {
+    transform: none !important;
   }
 }

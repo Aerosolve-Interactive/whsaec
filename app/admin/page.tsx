@@ -1,6 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
+import { createClient } from '@/lib/supabase/server'
 import { formatHours } from '@/lib/hours'
+import { PageHeader, Panel, StatRow, Pill, Rows } from '@/components/app/ui'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -22,82 +24,94 @@ export default async function AdminPage() {
   const pendingHours = hours.filter(h => !h.verified)
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Admin Overview</h1>
-        <p className="text-gray-400 text-sm mt-1">Manage members, hours, and projects.</p>
-      </div>
+    <div className="flex flex-col gap-8">
+      <PageHeader title="Overview" subtitle="Manage members, hours, and projects." />
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[
-          { label: 'Total Members', value: members.length },
-          { label: 'Total Hours Logged', value: formatHours(totalHours) },
-          { label: 'Pending Verification', value: pendingHours.length },
-          { label: 'Active Projects', value: projects.filter(p => p.status === 'active').length },
-        ].map((stat) => (
-          <div key={stat.label} className="bg-white border border-gray-100 rounded-2xl p-5">
-            <div className="text-2xl font-semibold tracking-tight mb-1">{stat.value}</div>
-            <div className="text-xs text-gray-400">{stat.label}</div>
-          </div>
-        ))}
-      </div>
+      <StatRow
+        items={[
+          { label: 'Total members', value: members.length },
+          { label: 'Hours logged', value: formatHours(totalHours) },
+          {
+            label: 'Pending verification',
+            value: pendingHours.length,
+            tone: pendingHours.length > 0 ? 'warn' : 'default',
+          },
+          {
+            label: 'Active projects',
+            value: projects.filter(p => p.status === 'active').length,
+          },
+        ]}
+      />
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-semibold">Pending Hours</h2>
-          <Link href="/admin/hours" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">View all</Link>
-        </div>
-        {pendingHours.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No pending hours.</p>
-        ) : (
-          <div className="space-y-3">
-            {pendingHours.slice(0, 8).map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                <div>
-                  <p className="text-sm font-medium">{(entry as any).profiles?.full_name}</p>
-                  <p className="text-xs text-gray-400">{entry.date} · {entry.description}</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium">{entry.hours} hrs</span>
-                  <span className="text-xs bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full">Pending</span>
-                </div>
+      <Panel
+        title="Pending hours"
+        action={
+          <Link
+            href="/admin/hours"
+            className="tactile group inline-flex items-center gap-1.5 text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]"
+          >
+            Review all
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </Link>
+        }
+      >
+        <Rows
+          empty={pendingHours.length === 0 ? 'Nothing waiting on verification.' : undefined}
+        >
+          {pendingHours.slice(0, 8).map((entry) => (
+            <div key={entry.id} className="flex items-center justify-between gap-4 px-5 py-4">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-[var(--ink)]">
+                  {(entry.profiles as { full_name?: string } | null)?.full_name ?? 'Unknown'}
+                </p>
+                <p className="nums mt-0.5 truncate text-xs text-[var(--ink-muted)]">
+                  {entry.date} · {entry.description}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="font-semibold">Members</h2>
-          <Link href="/admin/members" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">View all</Link>
-        </div>
-        <div className="space-y-3">
-          {members.slice(0, 8).map((member) => (
-            <div key={member.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-gray-900 text-white flex items-center justify-center text-xs font-medium">
-                  {member.full_name?.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-sm font-medium">{member.full_name}</p>
-                  <p className="text-xs text-gray-400">{member.email}</p>
-                </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="nums text-sm font-medium text-[var(--ink)]">
+                  {formatHours(Number(entry.hours))} hrs
+                </span>
+                <Pill tone="warn">Pending</Pill>
               </div>
-              <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                member.role === 'admin' || member.role === 'officer'
-                  ? 'bg-gray-900 text-white'
-                  : 'bg-gray-100 text-gray-500'
-              }`}>
-                {member.role}
-              </span>
             </div>
           ))}
-        </div>
-      </div>
+        </Rows>
+      </Panel>
+
+      <Panel
+        title="Members"
+        action={
+          <Link
+            href="/admin/members"
+            className="tactile group inline-flex items-center gap-1.5 text-sm text-[var(--ink-muted)] hover:text-[var(--ink)]"
+          >
+            View all
+            <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+          </Link>
+        }
+      >
+        <Rows empty={members.length === 0 ? 'No members yet.' : undefined}>
+          {members.slice(0, 8).map((member) => (
+            <div key={member.id} className="flex items-center justify-between gap-4 px-5 py-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--brand-navy)] text-xs font-medium text-white">
+                  {member.full_name?.charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-[var(--ink)]">
+                    {member.full_name}
+                  </p>
+                  <p className="truncate text-xs text-[var(--ink-muted)]">{member.email}</p>
+                </div>
+              </div>
+              <Pill tone={member.role === 'admin' || member.role === 'officer' ? 'info' : 'neutral'}>
+                {member.role}
+              </Pill>
+            </div>
+          ))}
+        </Rows>
+      </Panel>
     </div>
   )
 }
-
-
-

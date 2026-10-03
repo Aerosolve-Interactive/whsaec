@@ -11,6 +11,7 @@ import {
   formatClockTime,
   formatHours,
 } from '@/lib/hours'
+import { PageHeader, Panel, StatRow, Pill, Rows, FIELD, BTN_PRIMARY } from '@/components/app/ui'
 
 interface HourEntry {
   id: string
@@ -79,7 +80,8 @@ export default function HoursPage() {
     load()
   }, [])
 
-  // Keep the elapsed-time display ticking while clocked in.
+  // Keep the elapsed display ticking while clocked in. 30s is enough for a
+  // minute-resolution label and avoids a per-second re-render.
   useEffect(() => {
     if (!activeSession) return
     const interval = setInterval(() => setNow(new Date()), 30000)
@@ -135,7 +137,9 @@ export default function HoursPage() {
 
     const clockOutTime = new Date()
     const hoursComputed = computeSessionHours(activeSession.clock_in_time, clockOutTime)
-    const sessionLabel = activeSession.session_type ? SESSION_LABELS[activeSession.session_type] : null
+    const sessionLabel = activeSession.session_type
+      ? SESSION_LABELS[activeSession.session_type]
+      : null
 
     const { error: insertError } = await supabase.from('volunteer_hours').insert({
       member_id: user.id,
@@ -173,166 +177,161 @@ export default function HoursPage() {
 
   const totalHours = hours.reduce((sum, h) => sum + Number(h.hours), 0)
   const verifiedHours = hours.filter(h => h.verified).reduce((sum, h) => sum + Number(h.hours), 0)
+  const pending = totalHours - verifiedHours
 
   const activeSessionLabel = activeSession
-    ? (activeSession.session_type
-        ? SESSION_LABELS[activeSession.session_type]
-        : projects.find(p => p.id === activeSession.project_id)?.title ?? 'Session')
+    ? activeSession.session_type
+      ? SESSION_LABELS[activeSession.session_type]
+      : projects.find(p => p.id === activeSession.project_id)?.title ?? 'Session'
     : null
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Hours</h1>
-        <p className="text-gray-400 text-sm mt-1">Log and track your volunteer hours.</p>
-      </div>
+    <div className="flex flex-col gap-8">
+      <PageHeader title="My hours" subtitle="Log and track your volunteer hours." />
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <div className="text-2xl font-semibold mb-1">{formatHours(totalHours)}</div>
-          <div className="text-xs text-gray-400">Total Hours</div>
-        </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <div className="text-2xl font-semibold mb-1">{formatHours(verifiedHours)}</div>
-          <div className="text-xs text-gray-400">Verified Hours</div>
-        </div>
-        <div className="bg-white border border-gray-100 rounded-2xl p-5">
-          <div className="text-2xl font-semibold mb-1">{formatHours(totalHours - verifiedHours)}</div>
-          <div className="text-xs text-gray-400">Pending Verification</div>
-        </div>
-      </div>
+      <StatRow
+        items={[
+          { label: 'Total hours', value: formatHours(totalHours) },
+          { label: 'Verified', value: formatHours(verifiedHours), tone: 'ok' },
+          { label: 'Pending verification', value: formatHours(pending), tone: pending > 0 ? 'warn' : 'default' },
+          { label: 'Entries', value: hours.length },
+        ]}
+      />
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        {!activeSession ? (
-          <>
-            <h2 className="font-semibold mb-5">Clock In</h2>
-            <form onSubmit={handleClockIn} className="space-y-4">
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Session Type</label>
-                <select
-                  value={clockInType}
-                  onChange={(e) => setClockInType(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
-                >
-                  <option value="">Select a session type</option>
-                  {SESSION_TYPES.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                  {projects.length > 0 && projects.map((p) => (
-                    <option key={p.id} value={p.id}>{p.title}</option>
-                  ))}
-                </select>
-              </div>
-
-              {formError && (
-                <p className="text-sm text-red-500 bg-red-50 px-4 py-2.5 rounded-xl">{formError}</p>
-              )}
-              {success && (
-                <p className="text-sm text-green-600 bg-green-50 px-4 py-2.5 rounded-xl">Hours logged successfully.</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+      {/* Clock. The live state is the most important thing on this page, so
+          it gets the accent treatment and the running timer at display size. */}
+      {!activeSession ? (
+        <Panel title="Clock in">
+          <form onSubmit={handleClockIn} className="flex flex-col gap-4 p-5">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="sessionType" className="text-sm font-medium text-[var(--ink)]">
+                Session type
+              </label>
+              <select
+                id="sessionType"
+                value={clockInType}
+                onChange={(e) => setClockInType(e.target.value)}
+                className={FIELD}
               >
-                {submitting ? 'Clocking in...' : 'Clock In'}
-              </button>
-            </form>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-2 mb-5">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-              </span>
-              <h2 className="font-semibold">
-                Clocked in &middot; {activeSessionLabel} &middot; since {formatClockTime(activeSession.clock_in_time)} &middot; {formatElapsed(activeSession.clock_in_time, now)} elapsed
-              </h2>
+                <option value="">Select a session type</option>
+                {SESSION_TYPES.map((s) => (
+                  <option key={s.value} value={s.value}>{s.label}</option>
+                ))}
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>{p.title}</option>
+                ))}
+              </select>
             </div>
-            <form onSubmit={handleClockOut} className="space-y-4">
+
+            {formError && (
+              <p role="alert" className="rounded-[10px] bg-[var(--danger-wash)] px-4 py-2.5 text-sm text-[var(--danger)]">
+                {formError}
+              </p>
+            )}
+            {success && (
+              <p className="rounded-[10px] bg-[var(--ok-wash)] px-4 py-2.5 text-sm text-[var(--ok)]">
+                Hours logged. They are pending verification by an officer.
+              </p>
+            )}
+
+            <button type="submit" disabled={submitting} className={`${BTN_PRIMARY} self-start`}>
+              {submitting ? 'Clocking in...' : 'Clock in'}
+            </button>
+          </form>
+        </Panel>
+      ) : (
+        <section className="overflow-hidden rounded-[var(--radius)] border border-[var(--brand-sky)] bg-[var(--panel)]">
+          <div className="border-b border-[var(--hairline)] bg-[var(--brand-sky-wash)] px-5 py-5">
+            <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <label className="text-sm text-gray-600 block mb-1.5">What did you do?</label>
-                <input
-                  type="text"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
-                  placeholder="Brief description of your work"
-                />
+                <p className="text-sm font-medium text-[var(--brand-sky-deep)]">
+                  Clocked in &middot; {activeSessionLabel}
+                </p>
+                <p className="nums mt-1 text-xs text-[var(--ink-muted)]">
+                  Since {formatClockTime(activeSession.clock_in_time)}
+                </p>
               </div>
-
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Notes (optional)</label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors resize-none"
-                  placeholder="Any additional notes"
-                />
-              </div>
-
-              {formError && (
-                <p className="text-sm text-red-500 bg-red-50 px-4 py-2.5 rounded-xl">{formError}</p>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
-              >
-                {submitting ? 'Clocking out...' : 'Clock Out'}
-              </button>
-            </form>
-          </>
-        )}
-      </div>
-
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        <h2 className="font-semibold mb-5">All Entries</h2>
-        {loading ? (
-          <p className="text-sm text-gray-400 text-center py-8">Loading...</p>
-        ) : hours.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No hours logged yet.</p>
-        ) : (
-          <div className="space-y-3">
-            {hours.map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    <span className="truncate">{entry.description}</span>
-                    {entry.entry_type === 'admin_grant' && (
-                      <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium shrink-0">
-                        Granted
-                      </span>
-                    )}
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    {entry.date} · {entry.projects?.title ?? 'General'}
-                    {entry.clock_in_time && entry.clock_out_time
-                      ? ` · ${formatClockTime(entry.clock_in_time)}–${formatClockTime(entry.clock_out_time)}`
-                      : ''}
-                    {entry.notes ? ' · ' + entry.notes : ''}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-medium">{entry.hours} hrs</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
-                    entry.verified
-                      ? 'bg-green-50 text-green-600'
-                      : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    {entry.verified ? 'Verified' : 'Pending'}
-                  </span>
-                </div>
-              </div>
-            ))}
+              <p className="stat-figure text-3xl font-semibold leading-none text-[var(--ink)]">
+                {formatElapsed(activeSession.clock_in_time, now)}
+              </p>
+            </div>
           </div>
-        )}
-      </div>
+
+          <form onSubmit={handleClockOut} className="flex flex-col gap-4 p-5">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="what" className="text-sm font-medium text-[var(--ink)]">
+                What did you do?
+              </label>
+              <input
+                id="what"
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                required
+                className={FIELD}
+                placeholder="Brief description of your work"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="notes" className="text-sm font-medium text-[var(--ink)]">
+                Notes <span className="font-normal text-[var(--ink-muted)]">(optional)</span>
+              </label>
+              <textarea
+                id="notes"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                className={`${FIELD} resize-none`}
+                placeholder="Any additional notes"
+              />
+            </div>
+
+            {formError && (
+              <p role="alert" className="rounded-[10px] bg-[var(--danger-wash)] px-4 py-2.5 text-sm text-[var(--danger)]">
+                {formError}
+              </p>
+            )}
+
+            <button type="submit" disabled={submitting} className={`${BTN_PRIMARY} self-start`}>
+              {submitting ? 'Clocking out...' : 'Clock out'}
+            </button>
+          </form>
+        </section>
+      )}
+
+      <Panel title="All entries">
+        <Rows
+          loading={loading}
+          empty={!loading && hours.length === 0 ? 'No hours logged yet.' : undefined}
+        >
+          {hours.map((entry) => (
+            <div key={entry.id} className="flex items-center justify-between gap-4 px-5 py-4">
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm font-medium text-[var(--ink)]">
+                  <span className="truncate">{entry.description}</span>
+                  {entry.entry_type === 'admin_grant' && <Pill tone="info">Granted</Pill>}
+                </p>
+                <p className="nums mt-0.5 truncate text-xs text-[var(--ink-muted)]">
+                  {entry.date} · {entry.projects?.title ?? 'General'}
+                  {entry.clock_in_time && entry.clock_out_time
+                    ? ` · ${formatClockTime(entry.clock_in_time)}-${formatClockTime(entry.clock_out_time)}`
+                    : ''}
+                  {entry.notes ? ` · ${entry.notes}` : ''}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="nums text-sm font-medium text-[var(--ink)]">
+                  {formatHours(Number(entry.hours))} hrs
+                </span>
+                <Pill tone={entry.verified ? 'ok' : 'warn'}>
+                  {entry.verified ? 'Verified' : 'Pending'}
+                </Pill>
+              </div>
+            </div>
+          ))}
+        </Rows>
+      </Panel>
     </div>
   )
 }

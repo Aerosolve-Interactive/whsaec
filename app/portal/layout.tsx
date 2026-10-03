@@ -1,11 +1,22 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import PortalNav from "./PortalNav"
+import AppNav from '@/components/app/AppNav'
 
-export default async function PortalLayout({ children }: { children: React.ReactNode }) {
+const LINKS = [
+  { href: '/portal/dashboard', label: 'Dashboard' },
+  { href: '/portal/hours', label: 'My Hours' },
+  { href: '/portal/projects', label: 'My Projects' },
+]
+
+export default async function PortalLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
@@ -15,17 +26,19 @@ export default async function PortalLayout({ children }: { children: React.React
     .eq('id', user.id)
     .single()
 
+  const role = profile?.role ?? 'member'
+  const isStaff = role === 'admin' || role === 'officer'
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PortalNav
+    <div className="min-h-[100dvh] bg-[var(--page)]">
+      <AppNav
+        context="Portal"
+        links={LINKS}
         fullName={profile?.full_name ?? 'Member'}
-        role={profile?.role ?? 'member'}
+        role={role}
+        extra={isStaff ? { href: '/admin', label: 'Admin' } : undefined}
       />
-      <div className="max-w-5xl mx-auto px-6 py-10">
-        {children}
-      </div>
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">{children}</div>
     </div>
   )
 }
-
-
