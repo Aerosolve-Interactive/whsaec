@@ -14,7 +14,8 @@ const projects = [
   {
     title: 'Glider Build & Donate',
     status: 'Ongoing',
-    date: 'Spring 2025',
+    date: 'Started May 2026',
+    target: 'First donation November 2026',
     partner: 'TBD',
     description:
       'Members design, build, and donate handcrafted gliders to children in the community, combining aerospace engineering with meaningful service.',
@@ -84,6 +85,10 @@ export default function ProjectsPage() {
                         <p className="mt-2.5 text-sm leading-relaxed text-[var(--ink-muted)]">
                           {project.impact}
                         </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-[var(--ink)]">Timeline</h3>
+                        <p className="mt-2.5 text-sm text-[var(--ink-muted)]">{project.target}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-[var(--ink)]">Partner</h3>

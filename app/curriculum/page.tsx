@@ -10,7 +10,7 @@ export const metadata = {
     'A two year plan that takes AeroServe members from their first build to holding leadership positions in the club.',
 }
 
-type PhaseState = 'current' | 'summer' | 'upcoming'
+type PhaseState = 'complete' | 'current' | 'summer' | 'upcoming'
 
 const phases: {
   period: string
@@ -21,32 +21,32 @@ const phases: {
   units: { name: string; description: string; topics: string[]; hours: string }[]
 }[] = [
   {
-    period: 'Mar to May 2025',
+    period: 'May 2026',
     title: 'Founding Quarter',
-    subtitle: '2024-2025 School Year',
-    state: 'current',
-    tag: 'Current',
+    subtitle: '2025-2026 School Year',
+    state: 'complete',
+    tag: 'Complete',
     units: [
       {
         name: 'Getting Started',
         description:
-          'The club launches. First meetings, first members, first builds. No formal lessons yet, just getting everyone excited and working toward the first glider donation.',
+          'The club launches. First meetings, first members, first builds. No formal lessons yet, just getting everyone excited and starting work on the first gliders.',
         topics: [
           'Club structure and roles',
           'First glider build',
           'End of year build session (7 to 10 hrs)',
-          'Donate first batch of gliders',
+          'Set the goal for the first donation',
         ],
         hours: '8 meetings + 1 build session',
       },
     ],
   },
   {
-    period: 'Jun to Aug 2025',
+    period: 'Jun to Aug 2026',
     title: 'Summer Build',
-    subtitle: 'Summer 2025',
-    state: 'summer',
-    tag: 'Summer',
+    subtitle: 'Summer 2026',
+    state: 'complete',
+    tag: 'Complete',
     units: [
       {
         name: 'Experiment and Plan',
@@ -63,11 +63,11 @@ const phases: {
     ],
   },
   {
-    period: 'Aug to Dec 2025',
+    period: 'Aug to Dec 2026',
     title: 'Engineering and Leadership',
-    subtitle: '2025-2026 School Year, Fall',
-    state: 'upcoming',
-    tag: 'Upcoming',
+    subtitle: '2026-2027 School Year, Fall',
+    state: 'current',
+    tag: 'Current',
     units: [
       {
         name: 'Unit 1: Engineering Foundations',
@@ -91,15 +91,16 @@ const phases: {
           'Planning a service project',
           'Communication and outreach',
           'Fall build sessions (x2, 7 to 10 hrs each)',
+          'Finish and donate the first gliders (November 2026)',
         ],
         hours: 'Oct to Dec',
       },
     ],
   },
   {
-    period: 'Jan to May 2026',
+    period: 'Jan to May 2027',
     title: 'Advanced Builds and Execution',
-    subtitle: '2025-2026 School Year, Spring',
+    subtitle: '2026-2027 School Year, Spring',
     state: 'upcoming',
     tag: 'Upcoming',
     units: [
@@ -139,8 +140,9 @@ const hourBreakdown = [
 ]
 
 const TAG_STYLE: Record<PhaseState, string> = {
+  complete: 'bg-[var(--ok-wash)] text-[var(--ok)]',
   current: 'bg-[var(--brand-sky-wash)] text-[var(--brand-sky-deep)]',
-  summer: 'bg-[var(--warn-wash)] text-[var(--warn)]',
+  summer: 'bg-[var(--ok-wash)] text-[var(--ok)]',
   upcoming: 'bg-[var(--panel-sunk)] text-[var(--ink-muted)]',
 }
 
@@ -154,11 +156,11 @@ export default function CurriculumPage() {
           <div className="rake-field pointer-events-none absolute inset-0" aria-hidden="true" />
           <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-32 sm:px-8 lg:pb-20 lg:pt-36">
             <h1 className="max-w-2xl text-[clamp(2.25rem,4.8vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-[var(--ink)]">
-              Two years, first build to leading the club.
+              From first build to leading the club.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--ink-soft)]">
-              Every semester builds on the last. Members start by making
-              something fly and finish by running sessions themselves.
+              We started in May 2026. Every term builds on the last, and the
+              first gliders go out this November.
             </p>
           </div>
         </section>
@@ -202,7 +204,9 @@ export default function CurriculumPage() {
                       className={`absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full border-2 lg:left-[11rem] ${
                         phase.state === 'current'
                           ? 'border-[var(--brand-sky)] bg-[var(--brand-sky)]'
-                          : 'border-[var(--hairline-strong)] bg-[var(--page)]'
+                          : phase.state === 'complete' || phase.state === 'summer'
+                            ? 'border-[var(--ok)] bg-[var(--ok)]'
+                            : 'border-[var(--hairline-strong)] bg-[var(--page)]'
                       }`}
                       aria-hidden="true"
                     />
@@ -213,7 +217,7 @@ export default function CurriculumPage() {
                       >
                         {phase.tag}
                       </span>
-                      <p className="nums mt-3 text-sm text-[var(--ink-muted)]">{phase.period}</p>
+                      <p className="mt-3 text-sm text-[var(--ink-muted)]">{phase.period}</p>
                     </div>
 
                     <div className="lg:pl-10">
@@ -232,7 +236,7 @@ export default function CurriculumPage() {
                               <h3 className="font-semibold tracking-[-0.015em] text-[var(--ink)]">
                                 {unit.name}
                               </h3>
-                              <span className="nums text-xs text-[var(--ink-muted)]">
+                              <span className="shrink-0 text-xs text-[var(--ink-muted)]">
                                 {unit.hours}
                               </span>
                             </div>

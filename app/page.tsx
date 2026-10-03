@@ -12,7 +12,7 @@ const PROJECTS = [
   {
     title: 'Glider Build & Donate',
     status: 'Ongoing',
-    partner: 'TBD',
+    meta: 'First donation November 2026',
     description:
       'Members design, build, and donate handcrafted gliders to children in the community, combining aerospace engineering with meaningful service.',
   },
@@ -216,7 +216,7 @@ export default async function Home() {
                       {p.description}
                     </p>
                     <p className="mt-8 border-t border-[var(--hairline)] pt-5 text-sm text-[var(--ink-muted)]">
-                      Partner: {p.partner}
+                      {p.meta}
                     </p>
                   </div>
                 </article>

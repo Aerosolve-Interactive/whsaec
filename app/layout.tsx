@@ -1,19 +1,35 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-// Geist for everything. It was already being loaded here and then thrown
-// away in favour of Inter, which is the default this redesign is trying to
-// get away from. Geist Mono carries every number in the product.
-const geistSans = Geist({
+// Three faces, each with a job.
+//
+// Bricolage Grotesque carries headlines: a variable grotesque with real
+// character in its terminals, so the display type has personality without
+// resorting to a novelty face. Instrument Sans sets body copy and stays
+// deliberately quiet underneath it. IBM Plex Mono carries every number and
+// timestamp, and brings genuine engineering provenance to a page about
+// aerospace.
+//
+// Geist and Inter are both avoided on purpose. They are the two defaults
+// every generated site ships with, which makes them a tell rather than a
+// choice.
+const display = Bricolage_Grotesque({
+  variable: "--font-display",
+  subsets: ["latin"],
+  display: "swap",
+});
+
+const sans = Instrument_Sans({
   variable: "--font-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const mono = IBM_Plex_Mono({
+  variable: "--font-mono-data",
   subsets: ["latin"],
+  weight: ["400", "500"],
   display: "swap",
 });
 
@@ -76,7 +92,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${display.variable} ${sans.variable} ${mono.variable}`}
+    >
       <body className="antialiased">{children}</body>
     </html>
   );
