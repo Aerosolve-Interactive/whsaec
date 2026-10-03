@@ -1,16 +1,29 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import AppNav from '@/components/app/AppNav'
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+const LINKS = [
+  { href: '/admin', label: 'Overview' },
+  { href: '/admin/hours', label: 'Hours' },
+  { href: '/admin/members', label: 'Members' },
+  { href: '/admin/projects', label: 'Projects' },
+]
+
+export default async function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('full_name, role')
     .eq('id', user.id)
     .single()
 
@@ -19,28 +32,15 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-6 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-6">
-          <Link href="/" className="inline-flex items-center gap-2">
-            <img src="/logo.svg" alt="" className="h-7 w-7" />
-            <span className="font-semibold text-lg tracking-tight">AeroServe Youth Program</span>
-          </Link>
-          <span className="text-xs bg-gray-900 text-white px-2.5 py-1 rounded-full">Admin</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <Link href="/admin" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Overview</Link>
-          <Link href="/admin/hours" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Hours</Link>
-          <Link href="/admin/members" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Members</Link>
-          <Link href="/admin/projects" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">Projects</Link>
-          <Link href="/portal/dashboard" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">Back to Portal</Link>
-        </div>
-      </nav>
-      <div className="max-w-6xl mx-auto px-6 py-10">
-        {children}
-      </div>
+    <div className="min-h-[100dvh] bg-[var(--page)]">
+      <AppNav
+        context="Admin"
+        links={LINKS}
+        fullName={profile.full_name ?? 'Member'}
+        role={profile.role}
+        extra={{ href: '/portal/dashboard', label: 'Back to portal' }}
+      />
+      <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8">{children}</div>
     </div>
   )
 }
-
-

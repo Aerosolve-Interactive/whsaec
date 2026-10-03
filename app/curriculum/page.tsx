@@ -1,79 +1,131 @@
-import Link from 'next/link'
 import SiteNav from '@/components/site/SiteNav'
+import SiteFooter from '@/components/site/SiteFooter'
+import Reveal from '@/components/site/Reveal'
+import Link from 'next/link'
+import { ArrowRight } from 'lucide-react'
 
-const phases = [
+export const metadata = {
+  title: 'Curriculum',
+  description:
+    'A two year plan that takes AeroServe members from their first build to holding leadership positions in the club.',
+}
+
+type PhaseState = 'complete' | 'current' | 'summer' | 'upcoming'
+
+const phases: {
+  period: string
+  title: string
+  subtitle: string
+  state: PhaseState
+  tag: string
+  units: { name: string; description: string; topics: string[]; hours: string }[]
+}[] = [
   {
-    period: 'Mar to May 2025',
+    period: 'May 2026',
     title: 'Founding Quarter',
-    subtitle: '2024-2025 School Year',
-    color: 'bg-blue-50 border-blue-100',
-    tag: 'Current',
-    tagColor: 'bg-blue-50 text-blue-600',
+    subtitle: '2025-2026 School Year',
+    state: 'complete',
+    tag: 'Complete',
     units: [
       {
         name: 'Getting Started',
-        description: 'The club launches. First meetings, first members, first builds. No formal lessons yet, just getting everyone excited and working toward the first glider donation.',
-        topics: ['Club structure and roles', 'First glider build', 'End of year build session (7 to 10 hrs)', 'Donate first batch of gliders'],
+        description:
+          'The club launches. First meetings, first members, first builds. No formal lessons yet, just getting everyone excited and starting work on the first gliders.',
+        topics: [
+          'Club structure and roles',
+          'First glider build',
+          'End of year build session (7 to 10 hrs)',
+          'Set the goal for the first donation',
+        ],
         hours: '8 meetings + 1 build session',
       },
     ],
   },
   {
-    period: 'Jun to Aug 2025',
+    period: 'Jun to Aug 2026',
     title: 'Summer Build',
-    subtitle: 'Summer 2025',
-    color: 'bg-amber-50 border-amber-100',
-    tag: 'Summer',
-    tagColor: 'bg-amber-50 text-amber-600',
+    subtitle: 'Summer 2026',
+    state: 'complete',
+    tag: 'Complete',
     units: [
       {
         name: 'Experiment and Plan',
-        description: 'Optional sessions for core members. Time to try new build ideas, plan the fall curriculum, and start finding nonprofit partners for the year ahead.',
-        topics: ['Rubber band powered planes', 'Model rocket intro', 'Planning fall curriculum', 'Nonprofit outreach research'],
+        description:
+          'Optional sessions for core members. Time to try new build ideas, plan the fall curriculum, and start finding nonprofit partners for the year ahead.',
+        topics: [
+          'Rubber band powered planes',
+          'Model rocket intro',
+          'Planning fall curriculum',
+          'Nonprofit outreach research',
+        ],
         hours: 'Optional, up to 10 hrs',
       },
     ],
   },
   {
-    period: 'Aug to Dec 2025',
+    period: 'Aug to Dec 2026',
     title: 'Engineering and Leadership',
-    subtitle: '2025-2026 School Year, Fall',
-    color: 'bg-gray-50 border-gray-100',
-    tag: 'Upcoming',
-    tagColor: 'bg-gray-100 text-gray-500',
+    subtitle: '2026-2027 School Year, Fall',
+    state: 'current',
+    tag: 'Current',
     units: [
       {
         name: 'Unit 1: Engineering Foundations',
-        description: 'Members build real technical knowledge from the ground up. Everything we build gets better when we understand why it works.',
-        topics: ['How lift and drag work', 'Basic aerodynamics', 'Reading technical diagrams', 'Engineering design process', 'OpenRocket simulations'],
+        description:
+          'Members build real technical knowledge from the ground up. Everything we build gets better when we understand why it works.',
+        topics: [
+          'How lift and drag work',
+          'Basic aerodynamics',
+          'Reading technical diagrams',
+          'Engineering design process',
+          'OpenRocket simulations',
+        ],
         hours: 'Aug to Oct',
       },
       {
         name: 'Unit 2: Community and Leadership',
-        description: 'Engineering is only half the mission. This unit covers how to turn a build into a real service project that helps people.',
-        topics: ['How nonprofits work', 'Planning a service project', 'Communication and outreach', 'Fall build sessions (x2, 7 to 10 hrs each)'],
+        description:
+          'Engineering is only half the mission. This unit covers how to turn a build into a real service project that helps people.',
+        topics: [
+          'How nonprofits work',
+          'Planning a service project',
+          'Communication and outreach',
+          'Fall build sessions (x2, 7 to 10 hrs each)',
+          'Finish and donate the first gliders (November 2026)',
+        ],
         hours: 'Oct to Dec',
       },
     ],
   },
   {
-    period: 'Jan to May 2026',
+    period: 'Jan to May 2027',
     title: 'Advanced Builds and Execution',
-    subtitle: '2025-2026 School Year, Spring',
-    color: 'bg-gray-50 border-gray-100',
+    subtitle: '2026-2027 School Year, Spring',
+    state: 'upcoming',
     tag: 'Upcoming',
-    tagColor: 'bg-gray-100 text-gray-500',
     units: [
       {
         name: 'Unit 3: Advanced Builds',
-        description: 'Members push beyond basic gliders and start tackling harder engineering challenges.',
-        topics: ['Advanced glider designs', 'Intro to model rocketry', 'Basic structural engineering', 'Spring build sessions (x2, 7 to 10 hrs each)'],
+        description:
+          'Members push beyond basic gliders and start tackling harder engineering challenges.',
+        topics: [
+          'Advanced glider designs',
+          'Intro to model rocketry',
+          'Basic structural engineering',
+          'Spring build sessions (x2, 7 to 10 hrs each)',
+        ],
         hours: 'Jan to Mar',
       },
       {
         name: 'Unit 4: Club Roles and Growth',
-        description: 'Members take on more responsibility within the club. Strong contributors move into officer and leadership positions as the year wraps up.',
-        topics: ['Officer roles and responsibilities', 'Running a build session', 'Mentoring newer members', 'End of year reflection and planning'],
+        description:
+          'Members take on more responsibility within the club. Strong contributors move into officer and leadership positions as the year wraps up.',
+        topics: [
+          'Officer roles and responsibilities',
+          'Running a build session',
+          'Mentoring newer members',
+          'End of year reflection and planning',
+        ],
         hours: 'Mar to May',
       },
     ],
@@ -87,113 +139,162 @@ const hourBreakdown = [
   { label: 'Total active member', value: '~70 hrs/yr' },
 ]
 
-export default function CurriculumPage() {
-  return (
-    <main className="min-h-screen bg-white text-gray-900">
-
-      <SiteNav />
-
-      {/* HEADER */}
-      <section className="pt-32 pb-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 transition-colors mb-8 inline-block">
-            Back to Home
-          </Link>
-          <p className="text-sm text-gray-400 uppercase tracking-widest mb-3">What We Learn</p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">Curriculum</h1>
-          <p className="text-gray-500 max-w-xl leading-relaxed">
-            A two year plan that takes members from first build to holding leadership positions in the club.
-            Every semester builds on the last.
-          </p>
-        </div>
-      </section>
-
-      {/* HOURS BREAKDOWN */}
-      <section className="pb-16 px-6">
-        <div className="max-w-4xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-          {hourBreakdown.map((item) => (
-            <div key={item.label} className="bg-gray-50 rounded-2xl p-5">
-              <div className="text-xl font-semibold tracking-tight mb-1">{item.value}</div>
-              <div className="text-xs text-gray-400">{item.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* PHASES */}
-      <section className="pb-24 px-6">
-        <div className="max-w-4xl mx-auto space-y-8">
-          {phases.map((phase) => (
-            <div key={phase.title} className={`border rounded-2xl p-8 ${phase.color}`}>
-              <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${phase.tagColor}`}>
-                      {phase.tag}
-                    </span>
-                    <span className="text-xs text-gray-400">{phase.period}</span>
-                  </div>
-                  <h2 className="text-xl font-semibold">{phase.title}</h2>
-                  <p className="text-sm text-gray-400 mt-1">{phase.subtitle}</p>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                {phase.units.map((unit) => (
-                  <div key={unit.name} className="bg-white rounded-xl p-6">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <h3 className="font-semibold text-sm">{unit.name}</h3>
-                      <span className="text-xs text-gray-400 shrink-0">{unit.hours}</span>
-                    </div>
-                    <p className="text-sm text-gray-500 leading-relaxed mb-4">{unit.description}</p>
-                    <ul className="space-y-1">
-                      {unit.topics.map((topic) => (
-                        <li key={topic} className="text-sm text-gray-500 flex items-start gap-2">
-                          <span className="text-gray-300 mt-0.5">•</span>
-                          {topic}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA */}
-      <section className="py-16 px-6 bg-gray-50">
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-semibold tracking-tight mb-3">Want to join?</h2>
-          <p className="text-gray-500 text-sm mb-6">
-            Reach out to learn how to get involved with the club.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-block bg-gray-900 text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-gray-700 transition-colors"
-          >
-            Get in Touch
-          </Link>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer className="border-t border-gray-100 py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <span>© 2026 AeroServe Youth Program. All rights reserved.</span>
-          <div className="flex gap-6">
-            <Link href="/projects" className="hover:text-gray-600 transition-colors">Projects</Link>
-            <Link href="/curriculum" className="hover:text-gray-600 transition-colors">Curriculum</Link>
-            <Link href="/contact" className="hover:text-gray-600 transition-colors">Contact</Link>
-            <Link href="/login" className="hover:text-gray-600 transition-colors">Portal</Link>
-          </div>
-        </div>
-      </footer>
-
-    </main>
-  )
+const TAG_STYLE: Record<PhaseState, string> = {
+  complete: 'bg-[var(--ok-wash)] text-[var(--ok)]',
+  current: 'bg-[var(--brand-sky-wash)] text-[var(--brand-sky-deep)]',
+  summer: 'bg-[var(--ok-wash)] text-[var(--ok)]',
+  upcoming: 'bg-[var(--panel-sunk)] text-[var(--ink-muted)]',
 }
 
+export default function CurriculumPage() {
+  return (
+    <>
+      <SiteNav />
 
+      <main>
+        <section className="relative overflow-hidden border-b border-[var(--hairline)]">
+          <div className="rake-field pointer-events-none absolute inset-0" aria-hidden="true" />
+          <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-32 sm:px-8 lg:pb-20 lg:pt-36">
+            <h1 className="max-w-2xl text-[clamp(2.25rem,4.8vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-[var(--ink)]">
+              From first build to leading the club.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--ink-soft)]">
+              We started in May 2026. Every term builds on the last, and the
+              first gliders go out this November.
+            </p>
+          </div>
+        </section>
 
+        {/* Hours at a glance. Hairline-separated, no card boxes. */}
+        <section className="border-b border-[var(--hairline)] bg-[var(--panel)]">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <dl className="grid grid-cols-2 lg:grid-cols-4">
+              {hourBreakdown.map((item, i) => (
+                <Reveal
+                  key={item.label}
+                  delay={i * 60}
+                  className={`border-[var(--hairline)] py-8 ${i % 2 === 0 ? 'border-r' : ''} ${
+                    i < 2 ? 'border-b lg:border-b-0' : ''
+                  } ${i === 1 ? 'lg:border-r' : ''} ${i === 2 ? 'lg:border-r' : ''}`}
+                >
+                  <dd className="stat-figure text-[clamp(1.35rem,2.6vw,1.75rem)] font-semibold leading-none text-[var(--ink)]">
+                    {item.value}
+                  </dd>
+                  <dt className="mt-2.5 text-[13px] text-[var(--ink-muted)]">{item.label}</dt>
+                </Reveal>
+              ))}
+            </dl>
+          </div>
+        </section>
+
+        {/* Timeline. A vertical spine with a node per phase reads as a plan
+            that moves forward, which four stacked tinted boxes did not. */}
+        <section className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-28">
+          <div className="relative">
+            <div
+              className="absolute bottom-0 left-[7px] top-2 w-px bg-[var(--hairline)] lg:left-[calc(11rem+7px)]"
+              aria-hidden="true"
+            />
+
+            <div className="flex flex-col gap-16 lg:gap-20">
+              {phases.map((phase, pi) => (
+                <Reveal key={phase.title} delay={pi * 60}>
+                  <div className="relative grid gap-y-6 pl-8 lg:grid-cols-[11rem_1fr] lg:gap-x-12 lg:pl-0">
+                    <span
+                      className={`absolute left-0 top-1.5 h-[15px] w-[15px] rounded-full border-2 lg:left-[11rem] ${
+                        phase.state === 'current'
+                          ? 'border-[var(--brand-sky)] bg-[var(--brand-sky)]'
+                          : phase.state === 'complete' || phase.state === 'summer'
+                            ? 'border-[var(--ok)] bg-[var(--ok)]'
+                            : 'border-[var(--hairline-strong)] bg-[var(--page)]'
+                      }`}
+                      aria-hidden="true"
+                    />
+
+                    <div className="lg:pr-10 lg:text-right">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${TAG_STYLE[phase.state]}`}
+                      >
+                        {phase.tag}
+                      </span>
+                      <p className="mt-3 text-sm text-[var(--ink-muted)]">{phase.period}</p>
+                    </div>
+
+                    <div className="lg:pl-10">
+                      <h2 className="text-[clamp(1.5rem,2.8vw,1.95rem)] font-semibold leading-tight tracking-[-0.03em] text-[var(--ink)]">
+                        {phase.title}
+                      </h2>
+                      <p className="mt-1.5 text-sm text-[var(--ink-muted)]">{phase.subtitle}</p>
+
+                      <div className="mt-8 flex flex-col gap-4">
+                        {phase.units.map((unit) => (
+                          <div
+                            key={unit.name}
+                            className="panel-hover rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--panel)] p-6 lg:p-7"
+                          >
+                            <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
+                              <h3 className="font-semibold tracking-[-0.015em] text-[var(--ink)]">
+                                {unit.name}
+                              </h3>
+                              <span className="shrink-0 text-xs text-[var(--ink-muted)]">
+                                {unit.hours}
+                              </span>
+                            </div>
+                            <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--ink-soft)]">
+                              {unit.description}
+                            </p>
+                            <ul className="mt-5 grid gap-x-8 gap-y-2 sm:grid-cols-2">
+                              {unit.topics.map((topic) => (
+                                <li
+                                  key={topic}
+                                  className="flex gap-2.5 text-sm text-[var(--ink-muted)]"
+                                >
+                                  <span
+                                    className="mt-[9px] h-px w-3 shrink-0 bg-[var(--hairline-strong)]"
+                                    aria-hidden="true"
+                                  />
+                                  {topic}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="border-t border-[var(--hairline)] bg-[var(--panel)]">
+          <div className="mx-auto max-w-6xl px-5 py-20 sm:px-8 lg:py-24">
+            <Reveal>
+              <div className="flex flex-col items-start justify-between gap-7 lg:flex-row lg:items-center">
+                <div>
+                  <h2 className="text-[clamp(1.5rem,3vw,2.1rem)] font-semibold leading-[1.15] tracking-[-0.03em] text-[var(--ink)]">
+                    Want to join?
+                  </h2>
+                  <p className="mt-3 max-w-md leading-relaxed text-[var(--ink-soft)]">
+                    Members log real hours, build real things, and move into
+                    leadership as the program grows.
+                  </p>
+                </div>
+                <Link
+                  href="/signup"
+                  className="tactile group inline-flex shrink-0 items-center gap-2 rounded-full bg-[var(--brand-navy)] px-6 py-3.5 text-sm font-medium text-white hover:bg-[#1e293b]"
+                >
+                  Join the program
+                  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
+                </Link>
+              </div>
+            </Reveal>
+          </div>
+        </section>
+      </main>
+
+      <SiteFooter />
+    </>
+  )
+}

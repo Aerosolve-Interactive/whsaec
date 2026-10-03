@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { PageHeader, Panel, Pill, Rows } from '@/components/app/ui'
 
 export default async function PortalProjectsPage() {
   const supabase = await createClient()
@@ -8,7 +9,9 @@ export default async function PortalProjectsPage() {
 
   const { data: contributions } = await supabase
     .from('project_contributions')
-    .select('*, projects(title, description, status, nonprofit_partner, start_date, impact_summary)')
+    .select(
+      '*, projects(title, description, status, nonprofit_partner, start_date, impact_summary)',
+    )
     .eq('member_id', user.id)
 
   const { data: allProjects } = await supabase
@@ -16,91 +19,101 @@ export default async function PortalProjectsPage() {
     .select('*')
     .order('created_at', { ascending: false })
 
-  return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">My Projects</h1>
-        <p className="text-gray-400 text-sm mt-1">Projects you are part of.</p>
-      </div>
+  const mine = contributions ?? []
+  const all = allProjects ?? []
 
-      {contributions && contributions.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-widest">Your Contributions</h2>
-          {contributions.map((c) => {
-            const project = c.projects as any
+  return (
+    <div className="flex flex-col gap-8">
+      <PageHeader title="My projects" subtitle="Projects you are part of." />
+
+      {mine.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {mine.map((c) => {
+            const project = c.projects as {
+              title?: string
+              description?: string
+              status?: string
+              nonprofit_partner?: string
+              start_date?: string
+            } | null
+
             return (
-              <div key={c.id} className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-gray-300 transition-colors">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <h3 className="font-semibold text-lg">{project?.title}</h3>
-                  <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${
-                    project?.status === 'active'
-                      ? 'bg-green-50 text-green-600'
-                      : project?.status === 'upcoming'
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'bg-gray-100 text-gray-500'
-                  }`}>
+              <article
+                key={c.id}
+                className="panel-hover rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--panel)] p-6"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h2 className="text-lg font-semibold tracking-[-0.02em] text-[var(--ink)]">
+                    {project?.title}
+                  </h2>
+                  <Pill tone={project?.status === 'active' ? 'ok' : project?.status === 'upcoming' ? 'info' : 'neutral'}>
                     {project?.status}
-                  </span>
+                  </Pill>
                 </div>
+
                 {project?.description && (
-                  <p className="text-sm text-gray-500 leading-relaxed mb-4">{project.description}</p>
+                  <p className="mt-3 max-w-prose text-sm leading-relaxed text-[var(--ink-soft)]">
+                    {project.description}
+                  </p>
                 )}
-                <div className="flex flex-wrap gap-4 text-xs text-gray-400">
-                  <span>Your role: <span className="text-gray-600 font-medium">{c.role}</span></span>
+
+                <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-2 border-t border-[var(--hairline)] pt-4 text-xs">
+                  <div className="flex gap-1.5">
+                    <dt className="text-[var(--ink-muted)]">Your role</dt>
+                    <dd className="font-medium text-[var(--ink)]">{c.role}</dd>
+                  </div>
                   {project?.nonprofit_partner && (
-                    <span>Partner: <span className="text-gray-600 font-medium">{project.nonprofit_partner}</span></span>
+                    <div className="flex gap-1.5">
+                      <dt className="text-[var(--ink-muted)]">Partner</dt>
+                      <dd className="font-medium text-[var(--ink)]">{project.nonprofit_partner}</dd>
+                    </div>
                   )}
                   {project?.start_date && (
-                    <span>Started: <span className="text-gray-600 font-medium">{project.start_date}</span></span>
+                    <div className="flex gap-1.5">
+                      <dt className="text-[var(--ink-muted)]">Started</dt>
+                      <dd className="nums font-medium text-[var(--ink)]">{project.start_date}</dd>
+                    </div>
                   )}
-                </div>
+                </dl>
+
                 {c.description && (
-                  <div className="mt-4 bg-gray-50 rounded-xl p-4">
-                    <p className="text-xs text-gray-400 mb-1">Your contribution</p>
-                    <p className="text-sm text-gray-600">{c.description}</p>
+                  <div className="mt-4 rounded-[10px] bg-[var(--panel-sunk)] p-4">
+                    <p className="text-xs text-[var(--ink-muted)]">Your contribution</p>
+                    <p className="mt-1.5 text-sm text-[var(--ink)]">{c.description}</p>
                   </div>
                 )}
-              </div>
+              </article>
             )
           })}
         </div>
       )}
 
-      <div className="space-y-4">
-        <h2 className="text-sm font-medium text-gray-500 uppercase tracking-widest">All Club Projects</h2>
-        {allProjects && allProjects.length > 0 ? (
-          allProjects.map((project) => (
-            <div key={project.id} className="bg-white border border-gray-100 rounded-2xl p-6 hover:border-gray-300 transition-colors">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <h3 className="font-semibold">{project.title}</h3>
-                <span className={`text-xs px-2.5 py-1 rounded-full font-medium shrink-0 ${
-                  project.status === 'active'
-                    ? 'bg-green-50 text-green-600'
-                    : project.status === 'upcoming'
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'bg-gray-100 text-gray-500'
-                }`}>
+      <Panel title="All club projects">
+        <Rows empty={all.length === 0 ? 'No projects yet.' : undefined}>
+          {all.map((project) => (
+            <div key={project.id} className="px-5 py-4">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <p className="font-medium text-[var(--ink)]">{project.title}</p>
+                <Pill tone={project.status === 'active' ? 'ok' : project.status === 'upcoming' ? 'info' : 'neutral'}>
                   {project.status}
-                </span>
+                </Pill>
               </div>
               {project.description && (
-                <p className="text-sm text-gray-500 leading-relaxed mb-3">{project.description}</p>
+                <p className="mt-2 max-w-prose text-sm leading-relaxed text-[var(--ink-muted)]">
+                  {project.description}
+                </p>
               )}
-              <div className="flex flex-wrap gap-4 text-xs text-gray-400">
-                {project.nonprofit_partner && (
-                  <span>Partner: <span className="text-gray-600 font-medium">{project.nonprofit_partner}</span></span>
-                )}
-                {project.start_date && (
-                  <span>Started: <span className="text-gray-600 font-medium">{project.start_date}</span></span>
-                )}
-              </div>
+              {(project.nonprofit_partner || project.start_date) && (
+                <p className="nums mt-2.5 text-xs text-[var(--ink-faint)]">
+                  {project.nonprofit_partner}
+                  {project.nonprofit_partner && project.start_date ? ' · ' : ''}
+                  {project.start_date}
+                </p>
+              )}
             </div>
-          ))
-        ) : (
-          <p className="text-sm text-gray-400 text-center py-8">No projects yet.</p>
-        )}
-      </div>
+          ))}
+        </Rows>
+      </Panel>
     </div>
   )
 }
-

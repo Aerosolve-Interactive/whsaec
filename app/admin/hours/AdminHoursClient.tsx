@@ -12,6 +12,15 @@ import {
   todayInputValue,
   MAX_GRANT_HOURS,
 } from '@/lib/hours'
+import {
+  PageHeader,
+  Panel,
+  Pill,
+  Rows,
+  FIELD,
+  BTN_PRIMARY,
+  BTN_QUIET,
+} from '@/components/app/ui'
 
 interface HourEntry {
   id: string
@@ -136,9 +145,7 @@ export default function AdminHoursClient() {
       alert(error.message)
       return
     }
-    setHours(prev => prev.map(h => h.id === entry.id
-      ? { ...h, verified: true, verified_by: user.id }
-      : h))
+    setHours(prev => prev.map(h => (h.id === entry.id ? { ...h, verified: true, verified_by: user.id } : h)))
   }
 
   async function unverifyHour(id: string) {
@@ -146,9 +153,7 @@ export default function AdminHoursClient() {
       .from('volunteer_hours')
       .update({ verified: false, verified_by: null, verified_at: null })
       .eq('id', id)
-    setHours(prev => prev.map(h => h.id === id
-      ? { ...h, verified: false, verified_by: null }
-      : h))
+    setHours(prev => prev.map(h => (h.id === id ? { ...h, verified: false, verified_by: null } : h)))
   }
 
   async function deleteHour(id: string) {
@@ -186,9 +191,9 @@ export default function AdminHoursClient() {
   }
 
   /**
-   * Grants hours directly to a member. Unlike a clocked session these hours are
-   * not derived from a timer, so the entry records who granted them and why,
-   * and lands already verified -- an admin granting hours IS the verification.
+   * Grants hours directly to a member. Granting to yourself lands pending:
+   * another admin has to verify it, because hours created and approved by the
+   * same person defeat the point of the clock-in system.
    */
   async function grantHours(e: React.FormEvent) {
     e.preventDefault()
@@ -208,9 +213,6 @@ export default function AdminHoursClient() {
     setGranting(true)
     const { data: { user } } = await supabase.auth.getUser()
 
-    // Granting to yourself lands as pending: another admin has to verify it.
-    // Auto-verifying here would mean hours created and approved by the same
-    // person, which is exactly what the clock-in system exists to prevent.
     const isSelfGrant = user?.id === grantMemberId
 
     const { error } = await supabase.from('volunteer_hours').insert({
@@ -234,11 +236,11 @@ export default function AdminHoursClient() {
       return
     }
 
-    const memberName = members.find(m => m.id === grantMemberId)?.full_name ?? 'member'
+    const name = members.find(m => m.id === grantMemberId)?.full_name ?? 'member'
     setGrantSuccess(
       isSelfGrant
         ? `Granted ${formatHours(amount)} hrs to yourself. It is pending until another admin verifies it.`
-        : `Granted ${formatHours(amount)} hrs to ${memberName}.`
+        : `Granted ${formatHours(amount)} hrs to ${name}.`,
     )
     setGrantMemberId('')
     setGrantHoursValue('')
@@ -260,39 +262,44 @@ export default function AdminHoursClient() {
     return true
   })
 
+  const pendingCount = hours.filter(h => !h.verified).length
+
   return (
-    <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Hours</h1>
-          <p className="text-gray-400 text-sm mt-1">
-            {loading ? 'Loading...' : `${hours.length} total entries`}
-          </p>
-        </div>
-        <button
-          onClick={() => { setGrantOpen(o => !o); setGrantError(''); setGrantSuccess('') }}
-          className="text-sm bg-gray-900 text-white px-4 py-2 rounded-xl font-medium hover:bg-gray-700 transition-colors shrink-0"
-        >
-          {grantOpen ? 'Close' : 'Grant Hours'}
-        </button>
-      </div>
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title="Hours"
+        subtitle={loading ? 'Loading...' : `${hours.length} entries, ${pendingCount} awaiting verification`}
+        action={
+          <button
+            onClick={() => {
+              setGrantOpen(o => !o)
+              setGrantError('')
+              setGrantSuccess('')
+            }}
+            className={grantOpen ? BTN_QUIET : BTN_PRIMARY}
+          >
+            {grantOpen ? 'Close' : 'Grant hours'}
+          </button>
+        }
+      />
 
       {grantOpen && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6">
-          <h2 className="font-semibold">Grant Hours</h2>
-          <p className="text-xs text-gray-400 mt-1 mb-5">
-            For hours earned outside a clock-in session. The entry is recorded as admin-granted,
-            stamped with your name, and counts as verified immediately.
-          </p>
+        <Panel title="Grant hours">
+          <form onSubmit={grantHours} className="flex flex-col gap-4 p-5">
+            <p className="text-sm text-[var(--ink-muted)]">
+              For hours earned outside a clock-in session. The entry is recorded
+              as admin-granted and stamped with your name. Granting to yourself
+              lands pending until another admin verifies it.
+            </p>
 
-          <form onSubmit={grantHours} className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Member</label>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="g-member" className="text-sm font-medium text-[var(--ink)]">Member</label>
                 <select
+                  id="g-member"
                   value={grantMemberId}
                   onChange={(e) => setGrantMemberId(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
+                  className={FIELD}
                 >
                   <option value="">Select a member</option>
                   {members.map((m) => (
@@ -303,9 +310,10 @@ export default function AdminHoursClient() {
                 </select>
               </div>
 
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Hours</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="g-hours" className="text-sm font-medium text-[var(--ink)]">Hours</label>
                 <input
+                  id="g-hours"
                   type="number"
                   step="0.25"
                   min="0.25"
@@ -313,90 +321,97 @@ export default function AdminHoursClient() {
                   value={grantHoursValue}
                   onChange={(e) => setGrantHoursValue(e.target.value)}
                   placeholder="e.g. 3.5"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
+                  className={FIELD}
                 />
               </div>
 
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Date earned</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="g-date" className="text-sm font-medium text-[var(--ink)]">Date earned</label>
                 <input
+                  id="g-date"
                   type="date"
                   value={grantDate}
                   onChange={(e) => setGrantDate(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
+                  className={FIELD}
                 />
               </div>
 
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">
-                  Start time <span className="text-gray-400">(optional)</span>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="g-time" className="text-sm font-medium text-[var(--ink)]">
+                  Start time <span className="font-normal text-[var(--ink-muted)]">(optional)</span>
                 </label>
                 <input
+                  id="g-time"
                   type="time"
                   value={grantTime}
                   onChange={(e) => setGrantTime(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
+                  className={FIELD}
                 />
               </div>
             </div>
 
-            <div>
-              <label className="text-sm text-gray-600 block mb-1.5">Reason</label>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="g-reason" className="text-sm font-medium text-[var(--ink)]">Reason</label>
               <input
+                id="g-reason"
                 type="text"
                 value={grantReason}
                 onChange={(e) => setGrantReason(e.target.value)}
                 placeholder="e.g. Ran the glider build station at the Frisco library STEM night"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
+                className={FIELD}
               />
-              <p className="text-xs text-gray-400 mt-1.5">
+              <p className="text-xs text-[var(--ink-muted)]">
                 Be specific. This is the line a college sees on an hour verification report.
               </p>
             </div>
 
-            <div>
-              <label className="text-sm text-gray-600 block mb-1.5">Notes <span className="text-gray-400">(optional)</span></label>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="g-notes" className="text-sm font-medium text-[var(--ink)]">
+                Notes <span className="font-normal text-[var(--ink-muted)]">(optional)</span>
+              </label>
               <textarea
+                id="g-notes"
                 value={grantNotes}
                 onChange={(e) => setGrantNotes(e.target.value)}
                 rows={2}
                 placeholder="Any context worth keeping on the record"
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors resize-none"
+                className={`${FIELD} resize-none`}
               />
             </div>
 
             {grantError && (
-              <p className="text-sm text-red-500 bg-red-50 px-4 py-2.5 rounded-xl">{grantError}</p>
+              <p role="alert" className="rounded-[10px] bg-[var(--danger-wash)] px-4 py-2.5 text-sm text-[var(--danger)]">
+                {grantError}
+              </p>
             )}
             {grantSuccess && (
-              <p className="text-sm text-green-600 bg-green-50 px-4 py-2.5 rounded-xl">{grantSuccess}</p>
+              <p className="rounded-[10px] bg-[var(--ok-wash)] px-4 py-2.5 text-sm text-[var(--ok)]">
+                {grantSuccess}
+              </p>
             )}
 
-            <button
-              type="submit"
-              disabled={granting}
-              className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
-            >
-              {granting ? 'Granting...' : 'Grant Hours'}
+            <button type="submit" disabled={granting} className={`${BTN_PRIMARY} self-start`}>
+              {granting ? 'Granting...' : 'Grant hours'}
             </button>
           </form>
-        </div>
+        </Panel>
       )}
 
       {activeSessions.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6">
-          <h2 className="font-semibold mb-5">Currently Clocked In</h2>
-          <div className="space-y-3">
+        <Panel title="Currently clocked in">
+          <Rows>
             {activeSessions.map((session) => (
-              <div key={session.id} className="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                <div className="flex items-center gap-3">
-                  <span className="relative flex h-2.5 w-2.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+              <div key={session.id} className="flex items-center justify-between gap-4 px-5 py-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="relative flex h-2.5 w-2.5 shrink-0" aria-hidden="true">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--ok)] opacity-70" />
+                    <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-[var(--ok)]" />
                   </span>
-                  <div>
-                    <p className="text-sm font-medium">{session.member_profile?.full_name ?? 'Unknown'}</p>
-                    <p className="text-xs text-gray-400">
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-[var(--ink)]">
+                      {session.member_profile?.full_name ?? 'Unknown'}
+                    </p>
+                    <p className="nums mt-0.5 truncate text-xs text-[var(--ink-muted)]">
                       {session.session_type ? SESSION_LABELS[session.session_type] : session.projects?.title ?? 'Session'}
                       {' · since '}{formatClockTime(session.clock_in_time)}
                       {' · '}{formatElapsed(session.clock_in_time, now)} elapsed
@@ -406,25 +421,26 @@ export default function AdminHoursClient() {
                 <button
                   onClick={() => forceClockOut(session)}
                   disabled={closingId === session.id}
-                  className="text-xs bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+                  className="tactile shrink-0 rounded-full bg-[var(--warn-wash)] px-3 py-1.5 text-xs font-medium text-[var(--warn)] transition-colors hover:bg-[var(--danger-wash)] hover:text-[var(--danger)] disabled:opacity-55"
                 >
-                  {closingId === session.id ? 'Clocking out...' : 'Clock Out Now'}
+                  {closingId === session.id ? 'Clocking out...' : 'Clock out now'}
                 </button>
               </div>
             ))}
-          </div>
-        </div>
+          </Rows>
+        </Panel>
       )}
 
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex flex-wrap gap-2">
         {(['pending', 'verified', 'granted', 'all'] as const).map((f) => (
           <button
             key={f}
             onClick={() => setFilter(f)}
-            className={`text-sm px-4 py-2 rounded-xl font-medium transition-colors capitalize ${
+            aria-pressed={filter === f}
+            className={`tactile rounded-full px-4 py-2 text-sm font-medium capitalize ${
               filter === f
-                ? 'bg-gray-900 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-400'
+                ? 'bg-[var(--brand-navy)] text-white'
+                : 'border border-[var(--hairline-strong)] bg-[var(--panel)] text-[var(--ink-muted)] hover:text-[var(--ink)]'
             }`}
           >
             {f}
@@ -432,73 +448,72 @@ export default function AdminHoursClient() {
         ))}
       </div>
 
-      <div className="bg-white border border-gray-100 rounded-2xl p-6">
-        {loading ? (
-          <p className="text-sm text-gray-400 text-center py-8">Loading...</p>
-        ) : filtered.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No entries found.</p>
-        ) : (
-          <div className="space-y-3">
-            {filtered.map((entry) => (
-              <div key={entry.id} className="flex items-center justify-between gap-4 py-3 border-b border-gray-50 last:border-0">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium flex items-center gap-2">
-                    <span className="truncate">{entry.member_profile?.full_name ?? 'Unknown'}</span>
-                    {entry.entry_type === 'admin_grant' && (
-                      <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-medium shrink-0">
-                        Granted
-                      </span>
-                    )}
+      <Panel>
+        <Rows
+          loading={loading}
+          empty={!loading && filtered.length === 0 ? 'No entries match this filter.' : undefined}
+        >
+          {filtered.map((entry) => (
+            <div key={entry.id} className="flex items-center justify-between gap-4 px-5 py-4">
+              <div className="min-w-0">
+                <p className="flex items-center gap-2 text-sm font-medium text-[var(--ink)]">
+                  <span className="truncate">{entry.member_profile?.full_name ?? 'Unknown'}</span>
+                  {entry.entry_type === 'admin_grant' && <Pill tone="info">Granted</Pill>}
+                </p>
+                <p className="nums mt-0.5 truncate text-xs text-[var(--ink-muted)]">
+                  {entry.date} · {entry.description}
+                  {entry.clock_in_time && entry.clock_out_time
+                    ? ` · ${formatClockTime(entry.clock_in_time)}-${formatClockTime(entry.clock_out_time)}`
+                    : ''}
+                  {entry.notes ? ` · ${entry.notes}` : ''}
+                </p>
+                {entry.verified && entry.verified_by && (
+                  <p className="mt-1 text-xs text-[var(--ok)]">
+                    Verified by {memberName(entry.verified_by)}
                   </p>
-                  <p className="text-xs text-gray-400 truncate">
-                    {entry.date} · {entry.description}
-                    {entry.clock_in_time && entry.clock_out_time
-                      ? ` · ${formatClockTime(entry.clock_in_time)}–${formatClockTime(entry.clock_out_time)}`
-                      : ''}
-                    {entry.notes ? ' · ' + entry.notes : ''}
-                  </p>
-                  {entry.verified && entry.verified_by && (
-                    <p className="text-xs text-green-600 mt-0.5">
-                      Verified by {memberName(entry.verified_by)}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className="text-sm font-medium">{formatHours(Number(entry.hours))} hrs</span>
-                  {entry.verified ? (
-                    <button
-                      onClick={() => unverifyHour(entry.id)}
-                      className="text-xs bg-green-50 text-green-600 px-2.5 py-1 rounded-full hover:bg-red-50 hover:text-red-500 transition-colors"
-                    >
-                      Verified
-                    </button>
-                  ) : entry.member_id === currentUserId ? (
-                    <span
-                      title="You cannot verify your own hours. Ask another admin or officer."
-                      className="text-xs bg-gray-100 text-gray-400 px-2.5 py-1 rounded-full cursor-default"
-                    >
-                      Needs another admin
-                    </span>
-                  ) : (
-                    <button
-                      onClick={() => verifyHour(entry)}
-                      className="text-xs bg-amber-50 text-amber-600 px-2.5 py-1 rounded-full hover:bg-green-50 hover:text-green-600 transition-colors"
-                    >
-                      Verify
-                    </button>
-                  )}
-                  <button
-                    onClick={() => deleteHour(entry.id)}
-                    className="text-xs text-gray-300 hover:text-red-500 transition-colors"
-                  >
-                    Delete
-                  </button>
-                </div>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+
+              <div className="flex shrink-0 items-center gap-3">
+                <span className="nums text-sm font-medium text-[var(--ink)]">
+                  {formatHours(Number(entry.hours))} hrs
+                </span>
+
+                {entry.verified ? (
+                  <button
+                    onClick={() => unverifyHour(entry.id)}
+                    title="Remove verification"
+                    className="tactile rounded-full bg-[var(--ok-wash)] px-3 py-1.5 text-xs font-medium text-[var(--ok)] transition-colors hover:bg-[var(--danger-wash)] hover:text-[var(--danger)]"
+                  >
+                    Verified
+                  </button>
+                ) : entry.member_id === currentUserId ? (
+                  <span
+                    title="You cannot verify your own hours. Ask another admin or officer."
+                    className="cursor-default rounded-full bg-[var(--panel-sunk)] px-3 py-1.5 text-xs font-medium text-[var(--ink-muted)]"
+                  >
+                    Needs another admin
+                  </span>
+                ) : (
+                  <button
+                    onClick={() => verifyHour(entry)}
+                    className="tactile rounded-full bg-[var(--warn-wash)] px-3 py-1.5 text-xs font-medium text-[var(--warn)] transition-colors hover:bg-[var(--ok-wash)] hover:text-[var(--ok)]"
+                  >
+                    Verify
+                  </button>
+                )}
+
+                <button
+                  onClick={() => deleteHour(entry.id)}
+                  className="tactile text-xs text-[var(--ink-faint)] transition-colors hover:text-[var(--danger)]"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
+        </Rows>
+      </Panel>
     </div>
   )
 }

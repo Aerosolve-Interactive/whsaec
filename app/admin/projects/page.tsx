@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import {
+  PageHeader,
+  Panel,
+  Pill,
+  Rows,
+  FIELD,
+  BTN_PRIMARY,
+  BTN_QUIET,
+} from '@/components/app/ui'
 
 interface Project {
   id: string
@@ -23,6 +32,7 @@ interface Contribution {
   member_id: string
   project_id: string
   role: string
+  description?: string | null
   profiles: { full_name: string } | null
 }
 
@@ -66,16 +76,25 @@ export default function AdminProjectsPage() {
     e.preventDefault()
     setSubmitting(true)
     const { data: { user } } = await supabase.auth.getUser()
-    const { data, error } = await supabase.from('projects').insert({
-      title, description,
-      nonprofit_partner: partner,
-      start_date: startDate || null,
-      status,
-      created_by: user?.id,
-    }).select().single()
+    const { data, error } = await supabase
+      .from('projects')
+      .insert({
+        title,
+        description,
+        nonprofit_partner: partner,
+        start_date: startDate || null,
+        status,
+        created_by: user?.id,
+      })
+      .select()
+      .single()
     if (!error && data) {
       setProjects(prev => [data, ...prev])
-      setTitle(''); setDescription(''); setPartner(''); setStartDate(''); setStatus('active')
+      setTitle('')
+      setDescription('')
+      setPartner('')
+      setStartDate('')
+      setStatus('active')
       setAdding(false)
     }
     setSubmitting(false)
@@ -84,15 +103,21 @@ export default function AdminProjectsPage() {
   async function handleAssign(projectId: string) {
     if (!assignMember) return
     setAssigning(true)
-    const { data, error } = await supabase.from('project_contributions').insert({
-      project_id: projectId,
-      member_id: assignMember,
-      role: assignRole,
-      description: assignDescription || null,
-    }).select('*, profiles(full_name)').single()
+    const { data, error } = await supabase
+      .from('project_contributions')
+      .insert({
+        project_id: projectId,
+        member_id: assignMember,
+        role: assignRole,
+        description: assignDescription || null,
+      })
+      .select('*, profiles(full_name)')
+      .single()
     if (!error && data) {
       setContributions(prev => [...prev, data])
-      setAssignMember(''); setAssignRole('Volunteer'); setAssignDescription('')
+      setAssignMember('')
+      setAssignRole('Volunteer')
+      setAssignDescription('')
     }
     setAssigning(false)
   }
@@ -105,7 +130,7 @@ export default function AdminProjectsPage() {
 
   async function updateStatus(id: string, status: string) {
     await supabase.from('projects').update({ status }).eq('id', id)
-    setProjects(prev => prev.map(p => p.id === id ? { ...p, status } : p))
+    setProjects(prev => prev.map(p => (p.id === id ? { ...p, status } : p)))
   }
 
   async function deleteProject(id: string) {
@@ -115,170 +140,231 @@ export default function AdminProjectsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Projects</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage projects and assign members.</p>
-        </div>
-        <button
-          onClick={() => setAdding(!adding)}
-          className="bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors"
-        >
-          {adding ? 'Cancel' : 'Add Project'}
-        </button>
-      </div>
+    <div className="flex flex-col gap-8">
+      <PageHeader
+        title="Projects"
+        subtitle="Manage projects and assign members."
+        action={
+          <button
+            onClick={() => setAdding(!adding)}
+            className={adding ? BTN_QUIET : BTN_PRIMARY}
+          >
+            {adding ? 'Cancel' : 'Add project'}
+          </button>
+        }
+      />
 
       {adding && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-6">
-          <h2 className="font-semibold mb-5">New Project</h2>
-          <form onSubmit={handleAdd} className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Title</label>
-                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
-                  placeholder="Project name" />
+        <Panel title="New project">
+          <form onSubmit={handleAdd} className="flex flex-col gap-4 p-5">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="p-title" className="text-sm font-medium text-[var(--ink)]">Title</label>
+                <input
+                  id="p-title"
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  required
+                  className={FIELD}
+                  placeholder="Project name"
+                />
               </div>
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Nonprofit Partner</label>
-                <input type="text" value={partner} onChange={(e) => setPartner(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors"
-                  placeholder="Organization name" />
+              <div className="flex flex-col gap-2">
+                <label htmlFor="p-partner" className="text-sm font-medium text-[var(--ink)]">
+                  Nonprofit partner
+                </label>
+                <input
+                  id="p-partner"
+                  type="text"
+                  value={partner}
+                  onChange={(e) => setPartner(e.target.value)}
+                  className={FIELD}
+                  placeholder="Organization name"
+                />
               </div>
             </div>
-            <div>
-              <label className="text-sm text-gray-600 block mb-1.5">Description</label>
-              <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors resize-none"
-                placeholder="What is this project about?" />
+
+            <div className="flex flex-col gap-2">
+              <label htmlFor="p-desc" className="text-sm font-medium text-[var(--ink)]">Description</label>
+              <textarea
+                id="p-desc"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+                className={`${FIELD} resize-none`}
+                placeholder="What is this project about?"
+              />
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Start Date</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors" />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="p-start" className="text-sm font-medium text-[var(--ink)]">Start date</label>
+                <input
+                  id="p-start"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className={FIELD}
+                />
               </div>
-              <div>
-                <label className="text-sm text-gray-600 block mb-1.5">Status</label>
-                <select value={status} onChange={(e) => setStatus(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="p-status" className="text-sm font-medium text-[var(--ink)]">Status</label>
+                <select
+                  id="p-status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className={FIELD}
+                >
                   <option value="active">Active</option>
                   <option value="upcoming">Upcoming</option>
                   <option value="completed">Completed</option>
                 </select>
               </div>
             </div>
-            <button type="submit" disabled={submitting}
-              className="bg-gray-900 text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50">
-              {submitting ? 'Adding...' : 'Add Project'}
+
+            <button type="submit" disabled={submitting} className={`${BTN_PRIMARY} self-start`}>
+              {submitting ? 'Adding...' : 'Add project'}
             </button>
           </form>
-        </div>
+        </Panel>
       )}
 
-      <div className="space-y-4">
-        {loading ? (
-          <p className="text-sm text-gray-400 text-center py-8">Loading...</p>
-        ) : projects.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">No projects yet.</p>
-        ) : projects.map((project) => {
-          const projectContributions = contributions.filter(c => c.project_id === project.id)
-          const isExpanded = expandedProject === project.id
+      <Panel>
+        <Rows
+          loading={loading}
+          empty={!loading && projects.length === 0 ? 'No projects yet.' : undefined}
+        >
+          {projects.map((project) => {
+            const projectContributions = contributions.filter(c => c.project_id === project.id)
+            const isExpanded = expandedProject === project.id
 
-          return (
-            <div key={project.id} className="bg-white border border-gray-100 rounded-2xl overflow-hidden">
-              <div className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold">{project.title}</h3>
-                    <p className="text-xs text-gray-400 mt-0.5">
-                      {project.nonprofit_partner ? project.nonprofit_partner + ' · ' : ''}
-                      {projectContributions.length} members assigned
+            return (
+              <div key={project.id}>
+                <div className="flex flex-wrap items-center justify-between gap-4 px-5 py-4">
+                  <div className="min-w-0">
+                    <p className="truncate font-medium text-[var(--ink)]">{project.title}</p>
+                    <p className="nums mt-0.5 truncate text-xs text-[var(--ink-muted)]">
+                      {project.nonprofit_partner ? `${project.nonprofit_partner} · ` : ''}
+                      {projectContributions.length} assigned
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <select value={project.status} onChange={(e) => updateStatus(project.id, e.target.value)}
-                      className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-gray-400 transition-colors">
+
+                  <div className="flex shrink-0 items-center gap-3">
+                    <select
+                      aria-label={`Status for ${project.title}`}
+                      value={project.status}
+                      onChange={(e) => updateStatus(project.id, e.target.value)}
+                      className={`${FIELD} w-auto py-1.5 text-xs`}
+                    >
                       <option value="active">Active</option>
                       <option value="upcoming">Upcoming</option>
                       <option value="completed">Completed</option>
                     </select>
-                    <button onClick={() => setExpandedProject(isExpanded ? null : project.id)}
-                      className="text-sm text-gray-500 hover:text-gray-900 transition-colors">
+                    <button
+                      onClick={() => setExpandedProject(isExpanded ? null : project.id)}
+                      aria-expanded={isExpanded}
+                      className="tactile text-sm text-[var(--ink-muted)] transition-colors hover:text-[var(--ink)]"
+                    >
                       {isExpanded ? 'Hide' : 'Manage'}
                     </button>
-                    <button onClick={() => deleteProject(project.id)}
-                      className="text-xs text-gray-300 hover:text-red-500 transition-colors">
+                    <button
+                      onClick={() => deleteProject(project.id)}
+                      className="tactile text-xs text-[var(--ink-faint)] transition-colors hover:text-[var(--danger)]"
+                    >
                       Delete
                     </button>
                   </div>
                 </div>
-              </div>
 
-              {isExpanded && (
-                <div className="border-t border-gray-50 p-6 bg-gray-50 space-y-5">
-                  <div>
-                    <h4 className="text-sm font-medium mb-3">Assigned Members</h4>
-                    {projectContributions.length === 0 ? (
-                      <p className="text-xs text-gray-400">No members assigned yet.</p>
-                    ) : (
-                      <div className="space-y-2">
-                        {projectContributions.map((c) => (
-                          <div key={c.id} className="flex items-center justify-between bg-white rounded-xl px-4 py-2.5">
-                            <div>
-                              <p className="text-sm font-medium">{(c.profiles as any)?.full_name}</p>
-                              <p className="text-xs text-gray-400">{c.role}</p>
-                            </div>
-                            <button onClick={() => removeContribution(c.id)}
-                              className="text-xs text-gray-300 hover:text-red-500 transition-colors">
-                              Remove
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  <div>
-                    <h4 className="text-sm font-medium mb-3">Assign Member</h4>
-                    <div className="space-y-3">
-                      <select value={assignMember} onChange={(e) => setAssignMember(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors bg-white">
-                        <option value="">Select a member</option>
-                        {members
-                          .filter(m => !projectContributions.some(c => c.member_id === m.id))
-                          .map((m) => (
-                            <option key={m.id} value={m.id}>{m.full_name}</option>
+                {isExpanded && (
+                  <div className="flex flex-col gap-6 border-t border-[var(--hairline)] bg-[var(--panel-sunk)] px-5 py-5">
+                    <div>
+                      <h3 className="text-sm font-medium text-[var(--ink)]">Assigned members</h3>
+                      {projectContributions.length === 0 ? (
+                        <p className="mt-2.5 text-sm text-[var(--ink-muted)]">
+                          No members assigned yet.
+                        </p>
+                      ) : (
+                        <ul className="mt-3 flex flex-col gap-2">
+                          {projectContributions.map((c) => (
+                            <li
+                              key={c.id}
+                              className="flex items-center justify-between gap-3 rounded-[10px] bg-[var(--panel)] px-4 py-2.5"
+                            >
+                              <div className="min-w-0">
+                                <p className="truncate text-sm font-medium text-[var(--ink)]">
+                                  {c.profiles?.full_name}
+                                </p>
+                                <p className="truncate text-xs text-[var(--ink-muted)]">{c.role}</p>
+                              </div>
+                              <button
+                                onClick={() => removeContribution(c.id)}
+                                className="tactile shrink-0 text-xs text-[var(--ink-faint)] transition-colors hover:text-[var(--danger)]"
+                              >
+                                Remove
+                              </button>
+                            </li>
                           ))}
-                      </select>
-                      <div className="grid grid-cols-2 gap-3">
-                        <select value={assignRole} onChange={(e) => setAssignRole(e.target.value)}
-                          className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors bg-white">
-                          <option value="Volunteer">Volunteer</option>
-                          <option value="Lead">Lead</option>
-                          <option value="Organizer">Organizer</option>
-                          <option value="Officer">Officer</option>
+                        </ul>
+                      )}
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm font-medium text-[var(--ink)]">Assign a member</h3>
+                      <div className="mt-3 flex flex-col gap-3">
+                        <select
+                          aria-label="Member to assign"
+                          value={assignMember}
+                          onChange={(e) => setAssignMember(e.target.value)}
+                          className={FIELD}
+                        >
+                          <option value="">Select a member</option>
+                          {members
+                            .filter(m => !projectContributions.some(c => c.member_id === m.id))
+                            .map((m) => (
+                              <option key={m.id} value={m.id}>{m.full_name}</option>
+                            ))}
                         </select>
-                        <input type="text" value={assignDescription} onChange={(e) => setAssignDescription(e.target.value)}
-                          placeholder="Description (optional)"
-                          className="border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-gray-400 transition-colors bg-white" />
+
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <select
+                            aria-label="Role"
+                            value={assignRole}
+                            onChange={(e) => setAssignRole(e.target.value)}
+                            className={FIELD}
+                          >
+                            <option value="Volunteer">Volunteer</option>
+                            <option value="Lead">Lead</option>
+                            <option value="Organizer">Organizer</option>
+                            <option value="Officer">Officer</option>
+                          </select>
+                          <input
+                            type="text"
+                            aria-label="Contribution description"
+                            value={assignDescription}
+                            onChange={(e) => setAssignDescription(e.target.value)}
+                            placeholder="Description (optional)"
+                            className={FIELD}
+                          />
+                        </div>
+
+                        <button
+                          onClick={() => handleAssign(project.id)}
+                          disabled={assigning || !assignMember}
+                          className={`${BTN_PRIMARY} self-start`}
+                        >
+                          {assigning ? 'Assigning...' : 'Assign member'}
+                        </button>
                       </div>
-                      <button onClick={() => handleAssign(project.id)} disabled={assigning || !assignMember}
-                        className="bg-gray-900 text-white px-5 py-2 rounded-xl text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50">
-                        {assigning ? 'Assigning...' : 'Assign Member'}
-                      </button>
                     </div>
                   </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
-      </div>
+                )}
+              </div>
+            )
+          })}
+        </Rows>
+      </Panel>
     </div>
   )
 }
-
-
-

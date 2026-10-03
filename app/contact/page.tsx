@@ -1,82 +1,98 @@
-import Link from 'next/link'
 import SiteNav from '@/components/site/SiteNav'
+import SiteFooter from '@/components/site/SiteFooter'
+import Reveal from '@/components/site/Reveal'
+
+export const metadata = {
+  title: 'Contact',
+  description:
+    'Partner with AeroServe Youth Program, ask a question, or find out how to join the club.',
+}
+
+const DETAILS = [
+  {
+    label: 'Based at',
+    value: 'Wakeland High School',
+    note: 'Frisco, Texas',
+  },
+  {
+    label: 'Response time',
+    value: 'Within a few days',
+    note: 'We check the form regularly',
+  },
+  {
+    label: 'We are looking for',
+    value: 'Nonprofit partners',
+    note: 'Community orgs and new members',
+  },
+]
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-white text-gray-900">
-
+    <>
       <SiteNav />
 
-      {/* HEADER */}
-      <section className="pt-32 pb-16 px-6">
-        <div className="max-w-4xl mx-auto">
-          <Link href="/" className="text-sm text-gray-400 hover:text-gray-600 transition-colors mb-8 inline-block">
-            Back to Home
-          </Link>
-          <p className="text-sm text-gray-400 uppercase tracking-widest mb-3">Reach Out</p>
-          <h1 className="text-4xl md:text-5xl font-semibold tracking-tight mb-4">Contact</h1>
-          <p className="text-gray-500 max-w-xl leading-relaxed">
-            Want to partner with us, ask a question, or learn more about the club? Fill out the form below and we will get back to you.
-          </p>
-        </div>
-      </section>
+      <main>
+        <section className="relative overflow-hidden border-b border-[var(--hairline)]">
+          <div className="rake-field pointer-events-none absolute inset-0" aria-hidden="true" />
+          <div className="relative mx-auto max-w-6xl px-5 pb-16 pt-32 sm:px-8 lg:pb-20 lg:pt-36">
+            <h1 className="max-w-2xl text-[clamp(2.25rem,4.8vw,3.4rem)] font-semibold leading-[1.08] tracking-[-0.035em] text-[var(--ink)]">
+              Let&rsquo;s build something together.
+            </h1>
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--ink-soft)]">
+              Partnering, asking a question, or joining the club. All of it
+              starts here.
+            </p>
+          </div>
+        </section>
 
-      {/* INFO CARDS */}
-      <section className="pb-16 px-6">
-        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-4">
-          <div className="bg-gray-50 rounded-2xl p-6">
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">School</p>
-            <p className="font-medium text-sm">Wakeland High School</p>
-            <p className="text-sm text-gray-400">Frisco, TX</p>
-          </div>
-          <div className="bg-gray-50 rounded-2xl p-6">
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Response Time</p>
-            <p className="font-medium text-sm">Within a few days</p>
-            <p className="text-sm text-gray-400">We check regularly</p>
-          </div>
-          <div className="bg-gray-50 rounded-2xl p-6">
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-2">Looking For</p>
-            <p className="font-medium text-sm">Nonprofit Partners</p>
-            <p className="text-sm text-gray-400">Community Orgs</p>
-            <p className="text-sm text-gray-400">Club Members</p>
-          </div>
-        </div>
-      </section>
+        {/* Details rail beside the form, so the page reads as one block
+            rather than three info cards stacked above an iframe. */}
+        <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8 lg:py-24">
+          <div className="grid gap-12 lg:grid-cols-[19rem_1fr] lg:gap-16">
+            <Reveal>
+              <dl className="flex flex-col">
+                {DETAILS.map((d, i) => (
+                  <div
+                    key={d.label}
+                    className={`py-6 ${i !== 0 ? 'border-t border-[var(--hairline)]' : 'pt-0'}`}
+                  >
+                    <dt className="text-sm text-[var(--ink-muted)]">{d.label}</dt>
+                    <dd className="mt-2">
+                      <span className="block font-medium text-[var(--ink)]">{d.value}</span>
+                      <span className="mt-1 block text-sm text-[var(--ink-muted)]">{d.note}</span>
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            </Reveal>
 
-      {/* FORM */}
-      <section className="pb-24 px-6">
-        <div className="max-w-2xl mx-auto">
-          <div className="border border-gray-100 rounded-2xl overflow-hidden">
-            <iframe
-              src="https://docs.google.com/forms/d/e/1FAIpQLSdw8P4HEc9xItM8cD1UwScLFz_bihSeLWqKRn0y0Eh2DnjC_w/viewform?embedded=true"
-              width="100%"
-              height="900"
-              frameBorder="0"
-              marginHeight={0}
-              marginWidth={0}
-            >
-              Loading...
-            </iframe>
+            <Reveal delay={80}>
+              <div className="overflow-hidden rounded-[var(--radius)] border border-[var(--hairline)] bg-[var(--panel)]">
+                <div className="border-b border-[var(--hairline)] px-6 py-4">
+                  <h2 className="font-medium text-[var(--ink)]">Send us a message</h2>
+                  <p className="mt-1 text-sm text-[var(--ink-muted)]">
+                    Every field is optional except your email, so we can reply.
+                  </p>
+                </div>
+                <iframe
+                  src="https://docs.google.com/forms/d/e/1FAIpQLSdw8P4HEc9xItM8cD1UwScLFz_bihSeLWqKRn0y0Eh2DnjC_w/viewform?embedded=true"
+                  title="AeroServe contact form"
+                  width="100%"
+                  height="900"
+                  frameBorder="0"
+                  marginHeight={0}
+                  marginWidth={0}
+                  className="block w-full"
+                >
+                  Loading the contact form...
+                </iframe>
+              </div>
+            </Reveal>
           </div>
-        </div>
-      </section>
+        </section>
+      </main>
 
-      {/* FOOTER */}
-      <footer className="border-t border-gray-100 py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
-          <span>© 2026 AeroServe Youth Program. All rights reserved.</span>
-          <div className="flex gap-6">
-            <Link href="/projects" className="hover:text-gray-600 transition-colors">Projects</Link>
-            <Link href="/curriculum" className="hover:text-gray-600 transition-colors">Curriculum</Link>
-            <Link href="/contact" className="hover:text-gray-600 transition-colors">Contact</Link>
-            <Link href="/login" className="hover:text-gray-600 transition-colors">Portal</Link>
-          </div>
-        </div>
-      </footer>
-
-    </main>
+      <SiteFooter />
+    </>
   )
 }
-
-
-

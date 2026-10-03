@@ -7,18 +7,26 @@ interface CountUpProps {
   suffix?: string
   decimals?: number
   durationMs?: number
+  className?: string
 }
 
 /**
- * Counts from 0 up to `value` the first time it scrolls into view, using an
- * ease-out curve so the number decelerates as it lands. Falls straight to the
- * final value for anyone who prefers reduced motion.
+ * Counts up to `value` once, the first time it scrolls into view.
+ *
+ * Animating a real impact number earns its motion: the count draws the eye to
+ * the figure that matters and signals the number is live rather than painted
+ * on. Values that are genuinely zero skip the animation, because counting
+ * from 0 to 0 is just a flicker.
+ *
+ * Runs on requestAnimationFrame writing to one leaf's state. No scroll
+ * listener, no per-frame work in the wider tree.
  */
 export default function CountUp({
   value,
   suffix = '',
   decimals = 0,
-  durationMs = 1600,
+  durationMs = 1400,
+  className = '',
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null)
   const started = useRef(false)
@@ -51,10 +59,10 @@ export default function CountUp({
 
         const start = performance.now()
         const tick = (t: number) => {
-          const progress = Math.min(1, (t - start) / durationMs)
-          const eased = 1 - Math.pow(1 - progress, 3)
-          setDisplay(value * eased)
-          if (progress < 1) frame = requestAnimationFrame(tick)
+          const p = Math.min(1, (t - start) / durationMs)
+          // Ease-out cubic: fast arrival, slow settle.
+          setDisplay(value * (1 - Math.pow(1 - p, 3)))
+          if (p < 1) frame = requestAnimationFrame(tick)
           else setDisplay(value)
         }
         frame = requestAnimationFrame(tick)
@@ -70,7 +78,7 @@ export default function CountUp({
   }, [value, durationMs])
 
   return (
-    <span ref={ref} className="tabular-nums">
+    <span ref={ref} className={className}>
       {display.toFixed(decimals)}
       {suffix}
     </span>
